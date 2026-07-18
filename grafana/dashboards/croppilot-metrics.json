@@ -1,0 +1,47 @@
+{
+  "title": "CropPilot Metrics",
+  "uid": "croppilot-metrics",
+  "panels": [
+    {
+      "title": "API Request Rate",
+      "type": "graph",
+      "targets": [
+        {
+          "expr": "rate(croppilot_http_requests_total[5m])",
+          "legendFormat": "{{method}} {{path}}"
+        }
+      ]
+    },
+    {
+      "title": "API Latency (p95)",
+      "type": "graph",
+      "targets": [
+        {
+          "expr": "histogram_quantile(0.95, sum(rate(croppilot_http_request_duration_seconds_bucket[5m])) by (le))",
+          "legendFormat": "p95"
+        }
+      ]
+    },
+    {
+      "title": "Active Database Connections",
+      "type": "graph",
+      "targets": [
+        {
+          "expr": "croppilot_db_connections_active",
+          "legendFormat": "active"
+        }
+      ]
+    },
+    {
+      "title": "Celery Queue Size",
+      "type": "graph",
+      "targets": [
+        {
+          "expr": "croppilot_celery_queue_size",
+          "legendFormat": "{{queue}}"
+        }
+      ]
+    }
+  ],
+  "schemaVersion": 39
+}

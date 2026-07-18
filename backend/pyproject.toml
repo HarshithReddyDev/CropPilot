@@ -1,0 +1,39 @@
+[project]
+name = "croppilot-backend"
+version = "1.0.0"
+description = "Multi-Cloud RAG & Telemetry Backend for CropPilot"
+requires-python = ">=3.12"
+dependencies = [
+    "fastapi>=0.115.0",
+    "uvicorn[standard]>=0.34.0",
+    "sqlalchemy>=2.0.0",
+    "alembic>=1.14.0",
+    "asyncpg>=0.30.0",
+    "langchain>=0.3.0",
+    "langgraph>=0.2.0",
+    "langchain-openai>=0.3.0",
+    "qdrant-client>=1.13.0",
+    "redis[hiredis]>=5.2.0",
+    "celery[redis]>=5.4.0",
+    "opentelemetry-sdk>=1.29.0",
+    "opentelemetry-instrumentation-fastapi>=0.51b0",
+    "ultralytics>=8.3.0",
+    "torch>=2.5.0",
+    "geoalchemy2>=0.15.0",
+    "h3>=4.2.0",
+    "pydantic-settings>=2.7.0",
+]
+
+[tool.pytest.ini_options]
+asyncio_mode = "auto"
+testpaths = ["tests"]
+python_files = ["test_*.py"]
+addopts = "-v --cov=backend --cov-report=term-missing"
+
+[tool.alembic]
+script_location = "db/versions"
+sqlalchemy.url = "postgresql+asyncpg://croppilot:croppilot@localhost:5432/croppilot"
+
+[tool.coverage.run]
+source = ["backend"]
+omit = ["*/tests/*", "*/versions/*"]

@@ -1,0 +1,80 @@
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+dist/
+build/
+*.egg
+.venv/
+venv/
+env/
+
+# Environment
+.env
+.env.local
+.env.production
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+*~
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Database
+*.db
+*.sqlite
+
+# Docker
+docker-data/
+
+# Terraform
+*.tfstate*
+.terraform/
+*.terraform.lock.hcl
+
+# Logs
+*.log
+logs/
+
+# Uploads
+uploads/
+media/
+
+# Models
+/models/*.pt
+
+# Coverage
+coverage/
+.coverage
+coverage.xml
+htmlcov/
+
+# Pytest
+.pytest_cache/
+
+# MyPy
+.mypy_cache/
+
+# Ruff
+.ruff_cache/
+
+# Prometheus
+prometheus_data/
+
+# Grafana
+grafana_data/
+
+# Celery
+celerybeat-schedule
+celerybeat.pid
+frontend/node_modules/
+frontend/.next/
+backend/.venv/
+frontend/node_modules/
+frontend/.next/
+backend/.venv/
