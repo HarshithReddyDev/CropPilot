@@ -17,22 +17,21 @@ In an industry plagued by expensive API subscriptions and cloud lock-in, CropPil
 The system architecture is broken down into four primary tiers that operate entirely locally to provide a highly cohesive, edge-hybrid mesh.
 
 ### 1. Client Tier
-The client is a Next.js application that leverages MapLibre GL JS and deck.gl for WebGL-accelerated rendering. It handles spatial visualization, rendering H3 hexagons and boundary polygons at 60 FPS. It also implements WebGPU via LiteRT for in-browser quantization of models like YOLO for rapid visual disease detection. It communicates with the backend via WebSocket for real-time telemetry streaming.
+The client is a Next.js application leveraging MapLibre GL JS and deck.gl for WebGL-accelerated rendering. It handles spatial visualization, rendering H3 hexagons and boundary polygons at 60 FPS. It implements WebGPU via LiteRT for in-browser model quantization, enabling rapid visual disease detection directly on the edge.
 
 ### 2. Application Tier
-The core application tier is built with FastAPI in Python. It handles REST routing, spatial RAG (Retrieval-Augmented Generation) query processing, and interfaces with the machine learning components. It uses Celery for asynchronous background task processing, such as periodically ingesting market rates or updating weather models.
+The application tier is built with FastAPI in Python. It handles REST routing, spatial RAG (Retrieval-Augmented Generation) query processing, and interfaces with the machine learning components. Celery manages asynchronous background tasks, such as periodically ingesting market rates and processing weather models.
 
 ### 3. Data and Inference Tier
-All persistent state is stored in a single unified PostgreSQL container. This database leverages the PostGIS extension for complex geospatial queries and the pgvector extension for high-dimensional semantic search and RAG embeddings. AI inference is entirely offloaded to a local Ollama container running the Llama 3.1 8B model natively, utilizing the local NVIDIA GPU for hardware acceleration.
+All persistent state is stored in a unified PostgreSQL container. This database leverages the PostGIS extension for complex geospatial queries and the pgvector extension for high-dimensional semantic search and RAG embeddings. AI inference is entirely offloaded to a local Ollama container natively executing the Llama 3.1 8B model, utilizing the local NVIDIA GPU for hardware acceleration.
 
 ### 4. Observability Core
-An enterprise-grade telemetry pipeline tracks the entire system. FastAPI application metrics are intercepted and sent to an OpenTelemetry Collector, which then forwards the data to a Prometheus time-series database. Grafana is configured with provisioning files to automatically load dashboards visualizing API request rates, latency distributions, and database connection pool states.
+An enterprise-grade telemetry pipeline tracks the entire system. FastAPI application metrics are intercepted and sent to an OpenTelemetry Collector, which forwards the data to a Prometheus time-series database. Grafana is provisioned to automatically load dashboards visualizing API request rates, latency distributions, and database connection pools.
 
 ## System Architecture Topology
 
 ```mermaid
 graph TD
-    %% Client Tier
     subgraph Client Tier [Client Tier]
         UI[MapLibre GL JS + deck.gl]
         WebGPU[WebGPU & LiteRT]
@@ -42,14 +41,12 @@ graph TD
         WebWorker -->|WebSocket Telemetry| API
     end
 
-    %% Application Tier
     subgraph Application Tier [Application Tier]
         API[FastAPI Backend routing & RAG]
         Celery[Celery Async Workers]
         API <--> Celery
     end
 
-    %% Data & Inference Tier
     subgraph Data & Inference Tier [Data & Inference Tier]
         Postgres[(PostgreSQL)]
         PostGIS[(PostGIS Spatial)]
@@ -62,7 +59,6 @@ graph TD
         API <--> Ollama
     end
 
-    %% Observability Core
     subgraph Observability Core [Observability Core]
         Otel[OpenTelemetry Collector]
         Prometheus[(Prometheus)]
@@ -74,9 +70,19 @@ graph TD
     end
 ```
 
+## Scalable Cloud Deployment Options
+
+While CropPilot is heavily optimized to run on consumer hardware for local data sovereignty, the fully containerized microservices architecture allows it to be seamlessly lifted and shifted to major cloud providers for minimal operational costs.
+
+* **Amazon Web Services (AWS)**: Deploy the Next.js and FastAPI containers to Amazon ECS with Fargate for serverless compute. Migrate the database to Amazon RDS for PostgreSQL (with PostGIS/pgvector extensions natively supported). The Ollama inference engine can be hosted on affordable EC2 g4dn instances.
+* **Google Cloud Platform (GCP)**: The stateless frontend and backend can be deployed entirely to Google Cloud Run for zero-to-scale cost efficiency. The database seamlessly maps to Cloud SQL for PostgreSQL.
+* **Microsoft Azure**: Deploy containers to Azure Container Apps and migrate the database to Azure Database for PostgreSQL Flexible Server.
+
+This extreme portability ensures you can start locally for free and effortlessly scale to the cloud as production demands increase, entirely avoiding vendor lock-in.
+
 ## Local Hardware Prerequisites
 
-CropPilot has been extensively optimized to run a full LLM and telemetry stack simultaneously on consumer gaming hardware.
+CropPilot is optimized to run a full LLM and telemetry stack simultaneously on consumer gaming hardware.
 * **GPU**: NVIDIA RTX 4060 (8GB VRAM minimum for quantized Llama 3.1).
 * **Memory**: 32GB RAM (Required to share load between PostgreSQL shared buffers, system memory, and Docker overhead).
 * **OS**: Windows (WSL2), Linux, or macOS.
@@ -86,7 +92,7 @@ CropPilot has been extensively optimized to run a full LLM and telemetry stack s
 Follow these steps to deploy the entire Edge-Hybrid stack locally with zero cost.
 
 ### 1. NVIDIA Container Toolkit Setup
-Ensure you have Docker Desktop installed and running. If you are on Linux or WSL2, install the NVIDIA Container Toolkit to pass your RTX 4060 through to the Ollama container.
+Ensure you have Docker Desktop installed and running. On Linux or WSL2, install the NVIDIA Container Toolkit to pass your RTX 4060 through to the Ollama container.
 
 ### 2. Boot the Infrastructure Mesh
 Spin up the unified PostgreSQL database, Celery workers, API, and the Observability Core:
@@ -101,7 +107,7 @@ docker exec -it croppilot-main-ollama-1 ollama run llama3.1:8b
 ```
 
 ### 4. Launch the Frontend Application
-In a separate terminal, install the dependencies and boot the Next.js development server:
+In a separate terminal, install dependencies and boot the Next.js development server:
 ```bash
 cd frontend
 npm install
@@ -109,15 +115,25 @@ npm run dev
 ```
 
 ### 5. Start the Telemetry Simulator
-To generate live traffic for Grafana metrics, run the Node.js traffic simulator from the project root:
+To generate live traffic for Grafana metrics, run the Node.js traffic simulator:
 ```bash
 node scripts/simulate_traffic.js
 ```
+Visit http://localhost:3000 to access the Agri-Command Center, and your mapped port (e.g., http://localhost:3001) to view the Grafana observability panels.
 
-Visit `http://localhost:3000` to access the Agri-Command Center, and `http://localhost:3001` (if mapped) to view the Grafana observability panels!
+## Application Screenshots
 
-## Live Production Demo
-
-| Frontend Dashboard (MapLibre + deck.gl) | Grafana Telemetry Metrics | Local Ollama Inference |
-|:---:|:---:|:---:|
-| ![Frontend Demo](docs/assets/frontend_demo.png) | ![Grafana Metrics](docs/assets/grafana_metrics.png) | ![Ollama Inference Logs](docs/assets/ollama_inference.png) |
+| Dashboard Views |
+| :---: |
+| ![Screenshot 1](docs/assets/screenshot-1.png) |
+| ![Screenshot 2](docs/assets/screenshot-2.png) |
+| ![Screenshot 3](docs/assets/screenshot-3.png) |
+| ![Screenshot 4](docs/assets/screenshot-4.png) |
+| ![Screenshot 5](docs/assets/screenshot-5.png) |
+| ![Screenshot 6](docs/assets/screenshot-6.png) |
+| ![Screenshot 7](docs/assets/screenshot-7.png) |
+| ![Screenshot 8](docs/assets/screenshot-8.png) |
+| ![Screenshot 9](docs/assets/screenshot-9.png) |
+| ![Screenshot 10](docs/assets/screenshot-10.png) |
+| ![Screenshot 11](docs/assets/screenshot-11.png) |
+| ![Screenshot 12](docs/assets/screenshot-12.png) |
