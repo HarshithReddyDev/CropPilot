@@ -18,6 +18,7 @@ import { Filter, ArrowUp, ArrowDown } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { cn } from "@/lib/utils";
+import { useTranslation } from "@/lib/i18n";
 
 const seasons = ["Kharif 2025", "Rabi 2024-25", "Kharif 2024", "Rabi 2023-24"];
 
@@ -77,6 +78,7 @@ const CustomTooltip = ({ active, payload, label }: any) => {
 };
 
 export function YieldAnalytics() {
+  const { t } = useTranslation();
   const [selectedSeason, setSelectedSeason] = useState(seasons[0]);
 
   const sortedCrops = useMemo(
@@ -109,7 +111,7 @@ export function YieldAnalytics() {
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         <Card>
           <CardHeader>
-            <CardTitle className="text-base">Yield per Crop - {selectedSeason}</CardTitle>
+            <CardTitle className="text-base">{t("analytics.chYieldByCrop")} - {selectedSeason}</CardTitle>
           </CardHeader>
           <CardContent>
             <div className="h-72">
@@ -130,7 +132,7 @@ export function YieldAnalytics() {
 
         <Card>
           <CardHeader>
-            <CardTitle className="text-base">Yield Trend</CardTitle>
+            <CardTitle className="text-base">{t("analytics.chYieldTrend")}</CardTitle>
           </CardHeader>
           <CardContent>
             <div className="h-72">
@@ -156,7 +158,7 @@ export function YieldAnalytics() {
 
         <Card>
           <CardHeader>
-            <CardTitle className="text-base">Yield vs Target</CardTitle>
+            <CardTitle className="text-base">{t("analytics.chYieldVsTarget")}</CardTitle>
           </CardHeader>
           <CardContent>
             <div className="h-72">
@@ -177,7 +179,7 @@ export function YieldAnalytics() {
 
         <Card>
           <CardHeader>
-            <CardTitle className="text-base">Yield per Hectare</CardTitle>
+            <CardTitle className="text-base">{t("analytics.chYieldPerHa")}</CardTitle>
           </CardHeader>
           <CardContent>
             <div className="h-72">
@@ -201,7 +203,7 @@ export function YieldAnalytics() {
 
       <Card>
         <CardHeader>
-          <CardTitle className="text-base">Top & Bottom Performing Crops</CardTitle>
+          <CardTitle className="text-base">{t("analytics.chYieldTopBottom")}</CardTitle>
         </CardHeader>
         <CardContent>
           <div className="space-y-3">

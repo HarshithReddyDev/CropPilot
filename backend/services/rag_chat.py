@@ -3,10 +3,17 @@ from uuid import UUID
 
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from agents.graph import cropilot_agent
 from core.config import settings
 from models.user import User
 from schemas.ai import ChatRequest, ChatResponse, IntelRequest, RAGStreamRequest
+
+
+def _cropilot_agent():
+    # Lazy import: the agents package requires optional LLM dependencies
+    # that are not needed to boot the API or serve non-AI routes.
+    from agents.graph import cropilot_agent
+
+    return cropilot_agent
 
 
 class RAGChatService:
@@ -15,6 +22,7 @@ class RAGChatService:
     ) -> ChatResponse:
         from langchain_core.messages import HumanMessage
 
+        agent = _cropilot_agent()
         config = {
             "configurable": {
                 "user_id": str(user.id),
@@ -24,7 +32,7 @@ class RAGChatService:
             }
         }
 
-        result = await cropilot_agent.ainvoke(
+        result = await agent.ainvoke(
             {"messages": [HumanMessage(content=request.message)]},
             config=config,
         )
@@ -38,6 +46,7 @@ class RAGChatService:
     async def stream_chat(self, db, user, request):
         from langchain_core.messages import HumanMessage
 
+        agent = _cropilot_agent()
         config = {
             "configurable": {
                 "user_id": str(user.id),
@@ -47,7 +56,7 @@ class RAGChatService:
             }
         }
 
-        async for event in cropilot_agent.astream_events(
+        async for event in agent.astream_events(
             {"messages": [HumanMessage(content=request.message)]},
             config=config,
             version="v1",

@@ -1,5 +1,6 @@
 from uuid import UUID
 from collections.abc import AsyncGenerator
+from datetime import datetime, timezone
 from typing import Annotated
 
 from fastapi import Depends, HTTPException, status
@@ -13,6 +14,27 @@ from models.user import User
 from repositories.user import user_repository
 
 security_scheme = HTTPBearer(auto_error=False)
+
+# Deterministic identity used ONLY by the development auth bypass.
+# It is never written to the database and never valid in production.
+DEV_USER_ID = UUID("00000000-0000-4000-8000-000000000000")
+
+
+def _dev_user() -> User:
+    now = datetime.now(timezone.utc)
+    return User(
+        id=DEV_USER_ID,
+        email="dev@croppilot.local",
+        password_hash="!",
+        full_name="Development",
+        role="farmer",
+        state=None,
+        district=None,
+        is_active=True,
+        is_verified=True,
+        created_at=now,
+        updated_at=now,
+    )
 
 
 async def get_db() -> AsyncGenerator[AsyncSession, None]:
@@ -32,6 +54,11 @@ async def get_current_user(
     db: Annotated[AsyncSession, Depends(get_db)],
 ) -> User:
     if credentials is None:
+        # Development-only bypass: no credentials are accepted, fabricated,
+        # or validated here. Production (ENVIRONMENT=production) always
+        # falls through to the 401 below, even if the flag is set.
+        if settings.dev_auth_bypass_active:
+            return _dev_user()
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Not authenticated",

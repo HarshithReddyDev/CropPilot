@@ -1,6 +1,10 @@
+"use client";
+
 import { Sprout } from "lucide-react";
+import { useTranslation } from "@/lib/i18n";
 
 export default function Loading() {
+  const { t } = useTranslation();
   return (
     <div className="flex min-h-screen items-center justify-center bg-background p-4">
       <div className="relative flex flex-col items-center gap-4 rounded-2xl border border-border/50 bg-card/80 p-8 shadow-xl backdrop-blur-xl">
@@ -11,7 +15,7 @@ export default function Loading() {
           <div className="h-2 w-32 animate-pulse rounded-full bg-muted" />
           <div className="h-2 w-24 animate-pulse rounded-full bg-muted" />
         </div>
-        <p className="text-sm text-muted-foreground">Loading CropPilot...</p>
+        <p className="text-sm text-muted-foreground">{t("assistant.loadingApp")}</p>
       </div>
     </div>
   );

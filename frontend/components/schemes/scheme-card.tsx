@@ -12,6 +12,7 @@ import {
   AccordionContent,
 } from "@/components/ui/accordion";
 import type { GovernmentScheme } from "@/types";
+import { useTranslation } from "@/lib/i18n";
 
 const categoryColors: Record<string, string> = {
   Insurance: "bg-blue-500/10 text-blue-600 dark:text-blue-400 border-blue-500/20",
@@ -35,6 +36,7 @@ interface SchemeCardProps {
 }
 
 export function SchemeCard({ scheme, onViewDetail }: SchemeCardProps) {
+  const { t } = useTranslation();
   const Icon = categoryIcons[scheme.category ?? ""] ?? Shield;
   const eligibilityBullets = scheme.eligibility_criteria
     ? scheme.eligibility_criteria.split(".").filter(Boolean).slice(0, 3)
@@ -88,7 +90,7 @@ export function SchemeCard({ scheme, onViewDetail }: SchemeCardProps) {
 
         {eligibilityBullets.length > 0 && (
           <div className="mt-3 space-y-1">
-            <p className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground">Eligibility</p>
+            <p className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground">{t("schemes.eligibility")}</p>
             {eligibilityBullets.map((bullet, i) => (
               <p key={i} className="flex items-start gap-1.5 text-[11px] text-muted-foreground">
                 <span className="mt-0.5 h-1 w-1 shrink-0 rounded-full bg-primary/50" />
@@ -100,7 +102,7 @@ export function SchemeCard({ scheme, onViewDetail }: SchemeCardProps) {
 
         {benefitHighlight && (
           <div className="mt-3 rounded-lg bg-primary/5 border border-primary/10 px-3 py-2">
-            <p className="text-[10px] font-medium uppercase tracking-wider text-primary">Key Benefit</p>
+            <p className="text-[10px] font-medium uppercase tracking-wider text-primary">{t("schemes.benefits")}</p>
             <p className="mt-0.5 text-xs font-medium text-foreground">{benefitHighlight.slice(0, 80)}</p>
           </div>
         )}
@@ -108,25 +110,25 @@ export function SchemeCard({ scheme, onViewDetail }: SchemeCardProps) {
         <Accordion type="single" collapsible className="mt-3">
           <AccordionItem value="details" className="border-none">
             <AccordionTrigger className="py-1.5 text-xs font-medium text-muted-foreground hover:text-foreground no-underline hover:no-underline">
-              More Details
+              {t("schemes.moreDetails")}
             </AccordionTrigger>
             <AccordionContent>
               <div className="space-y-2 text-xs text-muted-foreground">
                 {scheme.application_process && (
                   <div>
-                    <p className="font-medium text-foreground">Application Process:</p>
+                    <p className="font-medium text-foreground">{t("schemes.applicationProcess")}</p>
                     <p className="mt-0.5">{scheme.application_process.split("\n").slice(0, 3).join(" → ")}</p>
                   </div>
                 )}
                 {scheme.funding_pattern && (
                   <div>
-                    <p className="font-medium text-foreground">Funding:</p>
+                    <p className="font-medium text-foreground">{t("schemes.funding")}</p>
                     <p className="mt-0.5">{scheme.funding_pattern}</p>
                   </div>
                 )}
                 {scheme.documents_required && (
                   <div>
-                    <p className="font-medium text-foreground">Documents:</p>
+                    <p className="font-medium text-foreground">{t("schemes.requiredDocuments")}</p>
                     <p className="mt-0.5">{scheme.documents_required.split(",").slice(0, 4).map((d) => d.trim()).join(", ")}</p>
                   </div>
                 )}
@@ -141,7 +143,7 @@ export function SchemeCard({ scheme, onViewDetail }: SchemeCardProps) {
             className="flex-1 gap-1"
             onClick={() => onViewDetail(scheme)}
           >
-            Check Eligibility
+            {t("schemes.checkEligibility")}
           </Button>
           {scheme.website_url && (
             <a

@@ -5,6 +5,7 @@ import { Wheat, Target } from "lucide-react";
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Cell } from "recharts";
 import { cn } from "@/lib/utils";
 import type { DashboardData } from "@/lib/constants";
+import { useTranslation } from "@/lib/i18n";
 
 interface YieldCardProps {
   data: DashboardData["yield"];
@@ -12,6 +13,7 @@ interface YieldCardProps {
 }
 
 export function YieldCard({ data, className }: YieldCardProps) {
+  const { t } = useTranslation();
   const barData = data.cropWise.map((c) => ({
     name: c.crop,
     Current: c.yield,
@@ -24,16 +26,16 @@ export function YieldCard({ data, className }: YieldCardProps) {
     <div className={cn("glass-card p-5", className)}>
       <div className="flex items-center gap-2 mb-3">
         <Wheat className="h-5 w-5 text-primary" />
-        <h3 className="font-semibold text-sm">Yield</h3>
+        <h3 className="font-semibold text-sm">{t("dashboard.wYield")}</h3>
       </div>
 
       <div className="grid grid-cols-2 gap-3 mb-3">
         <div>
-          <p className="text-xs text-muted-foreground">Total Yield</p>
+          <p className="text-xs text-muted-foreground">{t("dashboard.totalYield")}</p>
           <p className="text-xl font-bold">{data.total} q</p>
         </div>
         <div>
-          <p className="text-xs text-muted-foreground">Per Hectare</p>
+          <p className="text-xs text-muted-foreground">{t("dashboard.perHectare")}</p>
           <p className="text-xl font-bold">{data.perHectare} q/ha</p>
         </div>
       </div>

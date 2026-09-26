@@ -3,12 +3,14 @@
 import { type ReactNode } from "react";
 import { motion } from "framer-motion";
 import { Sprout } from "lucide-react";
+import { useTranslation } from "@/lib/i18n";
 
 interface AuthLayoutProps {
   children: ReactNode;
 }
 
 export function AuthLayout({ children }: AuthLayoutProps) {
+  const { t } = useTranslation();
   return (
     <div className="relative min-h-screen overflow-hidden bg-background">
       <div className="absolute inset-0 bg-gradient-to-br from-primary/5 via-background to-primary/10 dark:from-primary/10 dark:via-background dark:to-primary/5" />
@@ -43,31 +45,11 @@ export function AuthLayout({ children }: AuthLayoutProps) {
                 <div className="mx-auto flex h-24 w-24 items-center justify-center rounded-2xl bg-gradient-to-br from-primary to-emerald-400 shadow-lg">
                   <Sprout className="h-12 w-12 text-white" />
                 </div>
-                <h2 className="mt-6 text-2xl font-bold text-foreground">Welcome to CropPilot</h2>
+                <h2 className="mt-6 text-2xl font-bold text-foreground">{t("auth.authLayoutTitle")}</h2>
                 <p className="mt-3 max-w-sm text-muted-foreground">
-                  AI-powered platform for modern farming — crop monitoring, disease detection, weather intelligence, market insights, and government schemes.
+                  {t("auth.authLayoutBody")}
                 </p>
-                <div className="mt-8 grid grid-cols-3 gap-4">
-                  {[
-                    { label: "Farmers", value: "10K+" },
-                    { label: "Crops", value: "50+" },
-                    { label: "Coverage", value: "All India" },
-                  ].map(({ label, value }) => (
-                    <div key={label} className="rounded-lg bg-background/50 p-3">
-                      <p className="text-lg font-bold text-foreground">{value}</p>
-                      <p className="text-xs text-muted-foreground">{label}</p>
-                    </div>
-                  ))}
-                </div>
               </div>
-            </div>
-            <div className="absolute -bottom-4 -left-4 rounded-xl border border-border/50 bg-card p-3 shadow-lg">
-              <p className="text-sm font-medium text-foreground">🌾 Smart Farming</p>
-              <p className="text-xs text-muted-foreground">AI-Driven Insights</p>
-            </div>
-            <div className="absolute -right-4 -top-4 rounded-xl border border-border/50 bg-card p-3 shadow-lg">
-              <p className="text-sm font-medium text-foreground">📈 Market Intel</p>
-              <p className="text-xs text-muted-foreground">Real-time Prices</p>
             </div>
           </motion.div>
         </div>

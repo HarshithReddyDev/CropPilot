@@ -1,0 +1,26 @@
+{
+  "version": 1,
+  "note": "Smoke set. Expand to 100+ before quality gates. expected_tool must exist in ToolRegistry; expected_ui_action must be in ACTION_SPECS.",
+  "cases": [
+    {"q": "Paddy price in Nalgonda today?", "lang": "en", "expected_tool": "market_latest", "expected_ui_action": "apply-market-filters"},
+    {"q": "Cotton modal price trend last 30 days in Telangana?", "lang": "en", "expected_tool": "market_history", "expected_ui_action": "apply-market-filters"},
+    {"q": "Compare wheat prices across mandis", "lang": "en", "expected_tool": "market_compare", "expected_ui_action": "apply-market-filters"},
+    {"q": "Market overview for Telangana", "lang": "en", "expected_tool": "market_overview", "expected_ui_action": "open-market"},
+    {"q": "వరంగల్‌లో మొక్కజొన్న ధర?", "lang": "te", "expected_tool": "market_latest", "expected_ui_action": "apply-market-filters"},
+    {"q": "Current weather for my plot?", "lang": "en", "expected_tool": "weather_current", "expected_ui_action": null},
+    {"q": "5-day forecast, should I spray?", "lang": "en", "expected_tool": "weather_forecast", "expected_ui_action": null},
+    {"q": "Which schemes am I eligible for?", "lang": "en", "expected_tool": "scheme_search", "expected_ui_action": "open-article"},
+    {"q": "PM-KISAN benefits?", "lang": "en", "expected_tool": "scheme_search", "expected_ui_action": "open-article"},
+    {"q": "List Telangana state schemes", "lang": "en", "expected_tool": "schemes_list", "expected_ui_action": "open-article"},
+    {"q": "रायथु बंधु योजना क्या है?", "lang": "hi", "expected_tool": "scheme_search", "expected_ui_action": "open-article"},
+    {"q": "Summarize my latest disease report", "lang": "en", "expected_tool": "disease_log_summary", "expected_ui_action": null},
+    {"q": "Profit for 2ha paddy at current prices?", "lang": "en", "expected_tool": "crop_profit", "expected_ui_action": null},
+    {"q": "నా పంటకు లాభం ఎంత?", "lang": "te", "expected_tool": "crop_profit", "expected_ui_action": null},
+    {"q": "Chilli prices Adilabad vs Khammam?", "lang": "en", "expected_tool": "market_compare", "expected_ui_action": "apply-market-filters"},
+    {"q": "Maize arrivals this week?", "lang": "en", "expected_tool": "market_history", "expected_ui_action": "apply-market-filters"},
+    {"q": "Is it going to rain tomorrow?", "lang": "en", "expected_tool": "weather_forecast", "expected_ui_action": null},
+    {"q": "Crop insurance schemes?", "lang": "en", "expected_tool": "scheme_search", "expected_ui_action": "open-article"},
+    {"q": "Hello, what can you do?", "lang": "en", "expected_tool": null, "expected_ui_action": null},
+    {"q": "నమస్తే, సహాయం కావాలి", "lang": "te", "expected_tool": null, "expected_ui_action": null}
+  ]
+}

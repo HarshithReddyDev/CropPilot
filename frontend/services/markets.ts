@@ -1,42 +1,131 @@
 import { apiGet } from "./api";
-import type { MarketPrice } from "@/types";
+import type {
+  LatestPricesResponse,
+  MarketComparisonResponse,
+  MarketHistoryResponse,
+  MarketMetaResponse,
+  MarketOverview,
+} from "@/types";
 
-interface PaginatedResponse<T> {
-  items: T[];
-  total: number;
-  page: number;
-  size: number;
+const BASE = "/api/v1/markets";
+
+export interface LatestQuery {
+  state?: string;
+  district?: string;
+  commodity?: string;
+  market?: string;
+  variety?: string;
+  grade?: string;
+  limit?: number;
+  offset?: number;
 }
 
-interface PriceQueryParams {
-  commodity?: string;
+export interface HistoryQuery {
+  commodity: string;
   state?: string;
   district?: string;
   market?: string;
+  variety?: string;
+  grade?: string;
+  days?: 7 | 30 | 90;
   from_date?: string;
   to_date?: string;
-  page?: number;
-  size?: number;
-  sort_by?: string;
-  sort_order?: "asc" | "desc";
 }
 
-export async function queryPrices(
-  params: PriceQueryParams
-): Promise<PaginatedResponse<MarketPrice>> {
-  return apiGet<PaginatedResponse<MarketPrice>>("/api/v1/market/prices", {
-    params: params as Record<string, string | number | boolean | undefined>,
+export interface ComparisonQuery {
+  commodity: string;
+  state?: string;
+  district?: string;
+  variety?: string;
+  grade?: string;
+}
+
+export interface MetaScope {
+  state?: string;
+  district?: string;
+  market?: string;
+  commodity?: string;
+  variety?: string;
+}
+
+type Params = Record<string, string | number | boolean | undefined>;
+
+function clean<T extends object>(params: T): Params {
+  return { ...(params as object) } as unknown as Params;
+}
+
+export async function getMarketsLatest(
+  params: LatestQuery = {}
+): Promise<LatestPricesResponse> {
+  return apiGet<LatestPricesResponse>(`${BASE}/latest`, {
+    params: params as Params,
   });
 }
 
-export async function getLatestPrices(
-  commodity: string,
+export async function getMarketsHistory(
+  params: HistoryQuery
+): Promise<MarketHistoryResponse> {
+  return apiGet<MarketHistoryResponse>(`${BASE}/history`, {
+    params: clean(params),
+  });
+}
+
+export async function getMarketsComparison(
+  params: ComparisonQuery
+): Promise<MarketComparisonResponse> {
+  return apiGet<MarketComparisonResponse>(`${BASE}/comparison`, {
+    params: clean(params),
+  });
+}
+
+export async function getMarketsOverview(
   state?: string
-): Promise<MarketPrice[]> {
-  return apiGet<MarketPrice[]>("/api/v1/market/prices/latest", {
-    params: {
-      commodity,
-      state: state || undefined,
-    },
+): Promise<MarketOverview> {
+  return apiGet<MarketOverview>(`${BASE}/overview`, {
+    params: { state } as Params,
+  });
+}
+
+export async function getMarketStates(): Promise<MarketMetaResponse> {
+  return apiGet<MarketMetaResponse>(`${BASE}/meta/states`);
+}
+
+export async function getMarketDistricts(
+  scope: MetaScope = {}
+): Promise<MarketMetaResponse> {
+  return apiGet<MarketMetaResponse>(`${BASE}/meta/districts`, {
+    params: clean(scope),
+  });
+}
+
+export async function getMarketCommodities(
+  scope: MetaScope = {}
+): Promise<MarketMetaResponse> {
+  return apiGet<MarketMetaResponse>(`${BASE}/meta/commodities`, {
+    params: clean(scope),
+  });
+}
+
+export async function getMarketMarkets(
+  scope: MetaScope = {}
+): Promise<MarketMetaResponse> {
+  return apiGet<MarketMetaResponse>(`${BASE}/meta/markets`, {
+    params: clean(scope),
+  });
+}
+
+export async function getMarketVarieties(
+  scope: MetaScope = {}
+): Promise<MarketMetaResponse> {
+  return apiGet<MarketMetaResponse>(`${BASE}/meta/varieties`, {
+    params: clean(scope),
+  });
+}
+
+export async function getMarketGrades(
+  scope: MetaScope = {}
+): Promise<MarketMetaResponse> {
+  return apiGet<MarketMetaResponse>(`${BASE}/meta/grades`, {
+    params: clean(scope),
   });
 }

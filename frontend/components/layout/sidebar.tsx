@@ -13,23 +13,25 @@ import {
   BarChart3,
   Map,
   Sprout,
-  Settings,
   ChevronLeft,
   ChevronRight,
 } from "lucide-react";
 import { useUiStore } from "@/stores/ui-store";
+import { useAuthStore } from "@/stores/auth-store";
 import { cn } from "@/lib/utils";
 import { ThemeToggle } from "@/components/shared/theme-toggle";
+import { LanguageSwitcher } from "@/components/shared/language-switcher";
+import { useTranslation } from "@/lib/i18n";
 
 const navItems = [
-  { label: "Dashboard", href: "/dashboard", icon: LayoutDashboard },
-  { label: "Disease Detection", href: "/disease-detection", icon: Search },
-  { label: "Weather", href: "/weather", icon: CloudSun },
-  { label: "Markets", href: "/markets", icon: TrendingUp },
-  { label: "Schemes", href: "/schemes", icon: Government },
-  { label: "AI Assistant", href: "/ai-assistant", icon: Bot },
-  { label: "Analytics", href: "/analytics", icon: BarChart3 },
-  { label: "Maps", href: "/maps", icon: Map },
+  { key: "navigation.dashboard", href: "/dashboard", icon: LayoutDashboard },
+  { key: "navigation.disease", href: "/disease-detection", icon: Search },
+  { key: "navigation.weather", href: "/weather", icon: CloudSun },
+  { key: "navigation.markets", href: "/markets", icon: TrendingUp },
+  { key: "navigation.schemes", href: "/schemes", icon: Government },
+  { key: "navigation.assistant", href: "/ai-assistant", icon: Bot },
+  { key: "navigation.analytics", href: "/analytics", icon: BarChart3 },
+  { key: "navigation.maps", href: "/maps", icon: Map },
 ];
 
 const sidebarWidth = 256;
@@ -37,13 +39,25 @@ const sidebarCollapsed = 68;
 
 export function Sidebar() {
   const pathname = usePathname();
+  const { t } = useTranslation();
   const { sidebarOpen, toggleSidebar } = useUiStore();
+  const user = useAuthStore((s) => s.user);
+  const displayName = user?.full_name || "Development";
+  const displayRole = user?.role
+    ? user.role.charAt(0).toUpperCase() + user.role.slice(1)
+    : "Local access";
+  const initials = displayName
+    .split(" ")
+    .map((part) => part.charAt(0))
+    .slice(0, 2)
+    .join("")
+    .toUpperCase();
 
   return (
     <motion.aside
       animate={{ width: sidebarOpen ? sidebarWidth : sidebarCollapsed }}
       transition={{ duration: 0.3, ease: "easeInOut" }}
-      className="flex h-screen flex-col border-r border-sidebar-border bg-sidebar overflow-hidden shrink-0"
+      className="flex h-screen flex-col border-e border-sidebar-border bg-sidebar overflow-hidden shrink-0"
     >
       <div className="flex h-16 items-center gap-3 border-b border-sidebar-border px-4">
         <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary text-primary-foreground shrink-0">
@@ -64,8 +78,9 @@ export function Sidebar() {
       </div>
 
       <nav className="flex-1 space-y-1 overflow-y-auto p-3 scrollbar-hide">
-        {navItems.map(({ label, href, icon: Icon }) => {
+        {navItems.map(({ key, href, icon: Icon }) => {
           const isActive = pathname === href || pathname.startsWith(href + "/");
+          const label = t(key);
           return (
             <Link
               key={href}
@@ -105,7 +120,7 @@ export function Sidebar() {
       <div className="border-t border-sidebar-border p-3">
         <div className="flex items-center gap-3 rounded-lg px-3 py-2">
           <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-primary/20 text-primary text-sm font-semibold">
-            HR
+            {initials}
           </div>
           <AnimatePresence mode="wait">
             {sidebarOpen && (
@@ -116,10 +131,10 @@ export function Sidebar() {
                 className="flex-1 truncate"
               >
                 <p className="text-sm font-medium text-sidebar-foreground truncate">
-                  Harsh Raj
+                  {displayName}
                 </p>
                 <p className="text-xs text-sidebar-foreground/60 truncate">
-                  Farmer
+                  {displayRole}
                 </p>
               </motion.div>
             )}
@@ -127,9 +142,7 @@ export function Sidebar() {
           {sidebarOpen && (
             <div className="flex items-center gap-1">
               <ThemeToggle />
-              <button className="flex h-8 w-8 items-center justify-center rounded-lg text-sidebar-foreground/60 hover:bg-sidebar-muted hover:text-sidebar-foreground transition-colors">
-                <Settings className="h-4 w-4" />
-              </button>
+              <LanguageSwitcher compact />
             </div>
           )}
         </div>

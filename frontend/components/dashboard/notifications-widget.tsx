@@ -6,6 +6,7 @@ import { Bell, AlertTriangle, Info, CheckCircle, CheckCheck } from "lucide-react
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import type { DashboardData } from "@/lib/constants";
+import { useTranslation } from "@/lib/i18n";
 
 interface NotificationsWidgetProps {
   data: DashboardData["notifications"];
@@ -20,6 +21,7 @@ const typeConfig = {
 };
 
 export function NotificationsWidget({ data, className }: NotificationsWidgetProps) {
+  const { t } = useTranslation();
   const [notifications, setNotifications] = useState(data);
   const unreadCount = notifications.filter((n) => !n.isRead).length;
 
@@ -32,7 +34,7 @@ export function NotificationsWidget({ data, className }: NotificationsWidgetProp
       <div className="flex items-center justify-between mb-4">
         <div className="flex items-center gap-2">
           <Bell className="h-5 w-5 text-primary" />
-          <h3 className="font-semibold text-sm">Notifications</h3>
+          <h3 className="font-semibold text-sm">{t("dashboard.wNotifications")}</h3>
           {unreadCount > 0 && (
             <span className="flex h-5 min-w-[20px] items-center justify-center rounded-full bg-primary px-1.5 text-[10px] font-bold text-primary-foreground">
               {unreadCount}
@@ -42,7 +44,7 @@ export function NotificationsWidget({ data, className }: NotificationsWidgetProp
         {unreadCount > 0 && (
           <Button variant="ghost" size="sm" className="h-7 text-xs gap-1" onClick={markAllRead}>
             <CheckCheck className="h-3.5 w-3.5" />
-            Mark all read
+            {t("dashboard.notifMarkRead")}
           </Button>
         )}
       </div>
@@ -51,7 +53,7 @@ export function NotificationsWidget({ data, className }: NotificationsWidgetProp
         {notifications.length === 0 ? (
           <div className="flex flex-col items-center justify-center py-8 text-muted-foreground">
             <Bell className="h-10 w-10 mb-2 opacity-30" />
-            <p className="text-sm">No notifications</p>
+            <p className="text-sm">{t("dashboard.noNotifications")}</p>
           </div>
         ) : (
           notifications.map((notif, i) => {

@@ -14,9 +14,9 @@ router = APIRouter(prefix="/notifications", tags=["Notifications"])
 
 @router.get("")
 async def list_notifications(
-    unread_only: bool = Query(False),
     db: Annotated[AsyncSession, Depends(get_db)],
     current_user: Annotated[User, Depends(get_current_user)],
+    unread_only: bool = Query(False),
 ):
     return await notification_service.get_notifications(db, current_user.id, unread_only)
 

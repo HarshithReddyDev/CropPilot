@@ -4,6 +4,7 @@ import { motion } from "framer-motion";
 import { Tractor, MapPin, LayoutGrid, CalendarDays } from "lucide-react";
 import { cn } from "@/lib/utils";
 import type { DashboardData } from "@/lib/constants";
+import { useTranslation } from "@/lib/i18n";
 
 interface FarmOverviewProps {
   data: DashboardData["farmOverview"];
@@ -11,30 +12,31 @@ interface FarmOverviewProps {
 }
 
 export function FarmOverview({ data, className }: FarmOverviewProps) {
+  const { t } = useTranslation();
   const stats = [
     {
-      label: "Total Farms",
+      key: "dashboard.statFarms",
       value: data.totalFarms,
       icon: Tractor,
       color: "text-green-500",
       bg: "bg-green-500/10",
     },
     {
-      label: "Total Area",
+      key: "dashboard.statArea",
       value: `${data.totalAreaHectares} ha`,
       icon: MapPin,
       color: "text-blue-500",
       bg: "bg-blue-500/10",
     },
     {
-      label: "Active Plots",
+      key: "dashboard.statPlots",
       value: data.activePlots,
       icon: LayoutGrid,
       color: "text-amber-500",
       bg: "bg-amber-500/10",
     },
     {
-      label: "Current Season",
+      key: "dashboard.statSeason",
       value: data.currentSeason,
       icon: CalendarDays,
       color: "text-purple-500",
@@ -46,12 +48,12 @@ export function FarmOverview({ data, className }: FarmOverviewProps) {
     <div className={cn("glass-card p-5", className)}>
       <div className="flex items-center gap-2 mb-4">
         <Tractor className="h-5 w-5 text-primary" />
-        <h3 className="font-semibold text-sm">Farm Overview</h3>
+        <h3 className="font-semibold text-sm">{t("dashboard.wFarmOverview")}</h3>
       </div>
       <div className="grid grid-cols-2 gap-3">
         {stats.map((stat, i) => (
           <motion.div
-            key={stat.label}
+            key={stat.key}
             initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: i * 0.08, duration: 0.3 }}
@@ -64,7 +66,7 @@ export function FarmOverview({ data, className }: FarmOverviewProps) {
               <stat.icon className={cn("h-5 w-5", stat.color)} />
             </div>
             <div>
-              <p className="text-xs text-muted-foreground">{stat.label}</p>
+              <p className="text-xs text-muted-foreground">{t(stat.key)}</p>
               <p className="text-lg font-bold">{stat.value}</p>
             </div>
           </motion.div>

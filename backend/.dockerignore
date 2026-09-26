@@ -1,0 +1,12 @@
+# Keep the api image build context lean and hermetic: local caches, test
+# artifacts, and dev-only files must never be sent to the Docker daemon
+# (some cache filenames break context loading entirely).
+.cache/
+.local/
+__pycache__/
+*.pyc
+.pytest_cache/
+test.db
+*.log
+.env
+tmp_paddy.py

@@ -13,10 +13,10 @@ router = APIRouter(prefix="/schemes", tags=["Government Schemes"])
 
 @router.get("", response_model=list[GovernmentSchemeResponse])
 async def get_schemes(
-    state: str | None = Query(None),
-    category: str | None = Query(None),
     db: Annotated[AsyncSession, Depends(get_db)],
     current_user: Annotated[User, Depends(get_current_user)],
+    state: str | None = Query(None),
+    category: str | None = Query(None),
 ):
     if category:
         return await scheme_service.get_schemes_by_category(db, category)

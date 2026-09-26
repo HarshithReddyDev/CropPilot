@@ -1,4 +1,5 @@
 from celery import Celery
+from celery.schedules import crontab
 
 from core.config import settings
 
@@ -19,6 +20,22 @@ celery_app.conf.update(
     task_reject_on_worker_lost=True,
     result_expires=3600,
     timezone="Asia/Kolkata",
+    beat_schedule={
+        "sync-market-geography-daily": {
+            "task": "workers.tasks.sync_market_geography",
+            "schedule": crontab(
+                hour=str(settings.MARKET_INGEST_CRON_HOUR),
+                minute="0",
+            ),
+        },
+        "ingest-market-prices-daily": {
+            "task": "workers.tasks.ingest_market_prices",
+            "schedule": crontab(
+                hour=str(settings.MARKET_INGEST_CRON_HOUR),
+                minute=str(settings.MARKET_INGEST_CRON_MINUTE),
+            ),
+        },
+    },
 )
 
 celery_app.autodiscover_tasks(["workers"])

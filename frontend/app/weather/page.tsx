@@ -9,6 +9,7 @@ import { HourlyForecast } from "@/components/weather/hourly-forecast";
 import { WeeklyForecast } from "@/components/weather/weekly-forecast";
 import { WeatherDetails } from "@/components/weather/weather-details";
 import { WeatherMap } from "@/components/weather/weather-map";
+import { useTranslation } from "@/lib/i18n";
 import { cn } from "@/lib/utils";
 
 const LOCATIONS = [
@@ -107,6 +108,7 @@ const MOCK_WEATHER = {
 };
 
 export default function WeatherPage() {
+  const { t, locale } = useTranslation();
   const [searchOpen, setSearchOpen] = useState(false);
   const [search, setSearch] = useState("");
   const [selectedLocation, setSelectedLocation] = useState(MOCK_WEATHER.location);
@@ -136,10 +138,10 @@ export default function WeatherPage() {
         >
           <div>
             <h1 className="text-2xl font-bold tracking-tight text-foreground">
-              Weather
+              {t("weather.title")}
             </h1>
             <p className="mt-1 text-sm text-muted-foreground">
-              Real-time weather data and forecasts for your farm
+              {t("weather.subtitle")}
             </p>
           </div>
 
@@ -149,7 +151,7 @@ export default function WeatherPage() {
               className="inline-flex items-center gap-2 rounded-xl border border-border bg-card px-4 py-2.5 text-sm font-medium text-foreground transition-all hover:bg-accent min-w-[200px]"
             >
               <MapPin className="h-4 w-4 text-primary" />
-              <span className="flex-1 text-left truncate">{selectedLocation}</span>
+              <span className="flex-1 text-start truncate">{selectedLocation}</span>
               <ChevronDown
                 className={cn(
                   "h-4 w-4 text-muted-foreground transition-transform",
@@ -167,19 +169,20 @@ export default function WeatherPage() {
               >
                 <div className="border-b border-border p-3">
                   <div className="relative">
-                    <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+                    <Search className="absolute start-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
                     <input
                       value={search}
                       onChange={(e) => setSearch(e.target.value)}
-                      placeholder="Search location..."
-                      className="w-full rounded-lg border border-border bg-background py-2 pl-9 pr-3 text-sm outline-none ring-1 ring-transparent transition-all placeholder:text-muted-foreground focus:ring-primary"
+                      placeholder={t("weather.searchLocation")}
+                      aria-label={t("weather.searchLocation")}
+                      className="w-full rounded-lg border border-border bg-background py-2 ps-9 pe-3 text-sm outline-none ring-1 ring-transparent transition-all placeholder:text-muted-foreground focus:ring-primary"
                     />
                   </div>
                 </div>
                 <div className="max-h-60 overflow-y-auto p-2">
                   {filtered.length === 0 ? (
                     <p className="p-3 text-center text-sm text-muted-foreground">
-                      No locations found
+                      {t("weather.noLocations")}
                     </p>
                   ) : (
                     filtered.map((loc) => (

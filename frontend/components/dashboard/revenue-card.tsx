@@ -5,6 +5,7 @@ import { IndianRupee, TrendingUp, TrendingDown } from "lucide-react";
 import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from "recharts";
 import { cn, formatCurrency } from "@/lib/utils";
 import type { DashboardData } from "@/lib/constants";
+import { useTranslation } from "@/lib/i18n";
 
 interface RevenueCardProps {
   data: DashboardData["revenue"];
@@ -12,13 +13,14 @@ interface RevenueCardProps {
 }
 
 export function RevenueCard({ data, className }: RevenueCardProps) {
+  const { t } = useTranslation();
   const isPositive = data.comparison >= 0;
 
   return (
     <div className={cn("glass-card p-5", className)}>
       <div className="flex items-center gap-2 mb-3">
         <IndianRupee className="h-5 w-5 text-primary" />
-        <h3 className="font-semibold text-sm">Revenue</h3>
+        <h3 className="font-semibold text-sm">{t("dashboard.wRevenue")}</h3>
       </div>
 
       <div className="flex items-baseline justify-between mb-1">
@@ -31,7 +33,7 @@ export function RevenueCard({ data, className }: RevenueCardProps) {
           {isPositive ? "+" : ""}{data.comparison}%
         </div>
       </div>
-      <p className="text-xs text-muted-foreground mb-3">vs last month</p>
+      <p className="text-xs text-muted-foreground mb-3">{t("dashboard.vsLastMonth")}</p>
 
       <div className="h-[140px] w-full">
         <ResponsiveContainer width="100%" height="100%">

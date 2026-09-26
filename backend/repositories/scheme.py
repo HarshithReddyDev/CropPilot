@@ -36,5 +36,17 @@ class SchemeRepository(BaseRepository):
         result = await db.execute(stmt)
         return result.scalars().all()
 
+    async def list_active(self, db: AsyncSession, limit: int = 50):
+        """All active schemes regardless of jurisdiction. National
+        fallback only: callers must mark the widened scope."""
+        stmt = (
+            select(GovernmentScheme)
+            .where(GovernmentScheme.is_active == True)
+            .order_by(GovernmentScheme.scheme_name.asc())
+            .limit(limit)
+        )
+        result = await db.execute(stmt)
+        return result.scalars().all()
+
 
 scheme_repository = SchemeRepository()

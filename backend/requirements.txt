@@ -16,6 +16,7 @@ shapely==2.0.6
 # Auth
 python-jose[cryptography]==3.3.0
 passlib[bcrypt]==1.7.4
+bcrypt<4.1  # passlib 1.7.4 incompatible with bcrypt>=4.1 (72-byte ValueError)
 python-multipart==0.0.19
 
 # Postgres + PGVector
@@ -42,6 +43,8 @@ opencv-python-headless==4.10.0.84
 torch==2.5.1
 torchvision==0.20.1
 ultralytics==8.3.57
+onnxruntime>=1.20
+tifffile>=2024.0  # pure-Python GeoTIFF reader for SoilGrids WCS coverages
 
 # Observability
 opentelemetry-sdk>=1.29.0
@@ -74,3 +77,15 @@ email-validator>=2.0.0
 alembic==1.14.0
 tenacity==9.0.0
 cachetools==5.5.0
+
+# Voice + translation (V1.3, FOSS local engines; installed in image)
+faster-whisper==1.2.1
+huggingface_hub>=0.26
+transformers>=4.48,<5
+sentencepiece>=0.2
+soundfile>=0.12
+protobuf>=5,<7
+# parler-tts rides the transformers stack via git (pinned commit in docs):
+# pip install "git+https://github.com/huggingface/parler-tts.git@<sha>"
+# IndicTransToolkit rides the IndicTrans2 repo:
+# pip install "git+https://github.com/AI4Bharat/IndicTrans2.git#subdirectory=huggingface_interface"

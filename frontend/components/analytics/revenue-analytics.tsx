@@ -22,6 +22,7 @@ import { Download, IndianRupee, TrendingUp, Calendar } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { formatCurrency, cn } from "@/lib/utils";
+import { useTranslation } from "@/lib/i18n";
 
 const monthlyRevenue = [
   { month: "Jan", current: 45000, previous: 38000 },
@@ -67,6 +68,7 @@ const CustomTooltip = ({ active, payload, label }: any) => {
 };
 
 export function RevenueAnalytics() {
+  const { t } = useTranslation();
   const totalRevenue = useMemo(
     () => monthlyRevenue.reduce((sum, m) => sum + m.current, 0),
     []
@@ -100,7 +102,7 @@ export function RevenueAnalytics() {
 
       <Card>
         <CardHeader className="flex flex-row items-center justify-between pb-2">
-          <CardTitle className="text-base">Monthly Revenue</CardTitle>
+          <CardTitle className="text-base">{t("analytics.chRevenueMonthly")}</CardTitle>
           <Button variant="outline" size="sm">
             <Download className="h-4 w-4 mr-1" />
             Report
@@ -139,7 +141,7 @@ export function RevenueAnalytics() {
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         <Card>
           <CardHeader>
-            <CardTitle className="text-base">Revenue by Crop</CardTitle>
+            <CardTitle className="text-base">{t("analytics.chRevenueByCrop")}</CardTitle>
           </CardHeader>
           <CardContent>
             <div className="h-64">
@@ -168,7 +170,7 @@ export function RevenueAnalytics() {
 
         <Card>
           <CardHeader>
-            <CardTitle className="text-base">Cumulative Revenue</CardTitle>
+            <CardTitle className="text-base">{t("analytics.chRevenueCumulative")}</CardTitle>
           </CardHeader>
           <CardContent>
             <div className="h-64">

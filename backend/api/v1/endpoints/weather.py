@@ -13,17 +13,17 @@ router = APIRouter(prefix="/weather", tags=["Weather"])
 
 @router.get("/current", response_model=WeatherRecordResponse)
 async def get_current_weather(
-    h3_index: str = Query(...),
     db: Annotated[AsyncSession, Depends(get_db)],
     current_user: Annotated[User, Depends(get_current_user)],
+    h3_index: str = Query(...),
 ):
     return await weather_service.get_current_weather(db, h3_index)
 
 
 @router.get("/forecast", response_model=WeatherForecastResponse)
 async def get_forecast(
-    h3_index: str = Query(...),
     db: Annotated[AsyncSession, Depends(get_db)],
     current_user: Annotated[User, Depends(get_current_user)],
+    h3_index: str = Query(...),
 ):
     return await weather_service.get_forecast(db, h3_index)

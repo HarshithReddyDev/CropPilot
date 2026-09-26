@@ -4,6 +4,7 @@ import { useState, useRef, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Upload, FileImage, X, AlertCircle } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { useTranslation } from "@/lib/i18n";
 
 interface DragDropUploadProps {
   onFile: (file: File, preview: string) => void;
@@ -11,6 +12,7 @@ interface DragDropUploadProps {
 }
 
 export function DragDropUpload({ onFile, disabled }: DragDropUploadProps) {
+  const { t } = useTranslation();
   const [isDragging, setIsDragging] = useState(false);
   const [preview, setPreview] = useState<string | null>(null);
   const [fileName, setFileName] = useState<string | null>(null);
@@ -27,7 +29,7 @@ export function DragDropUpload({ onFile, disabled }: DragDropUploadProps) {
       }
 
       if (file.size > 10 * 1024 * 1024) {
-        setError("File size must be under 10MB.");
+        setError(t("disease.fileTooBig"));
         return;
       }
 
@@ -88,8 +90,8 @@ export function DragDropUpload({ onFile, disabled }: DragDropUploadProps) {
           <Upload className="h-5 w-5" />
         </div>
         <div>
-          <h3 className="text-sm font-semibold text-foreground">Upload Image</h3>
-          <p className="text-xs text-muted-foreground">Drag & drop or browse</p>
+          <h3 className="text-sm font-semibold text-foreground">{t("disease.uploadTitle")}</h3>
+          <p className="text-xs text-muted-foreground">{t("disease.uploadHint")}</p>
         </div>
       </div>
 
@@ -121,10 +123,10 @@ export function DragDropUpload({ onFile, disabled }: DragDropUploadProps) {
               </motion.div>
               <div className="text-center">
                 <p className="text-sm font-medium text-foreground">
-                  Drag & drop or click to upload
+                  {t("disease.dropHint")}
                 </p>
                 <p className="mt-1 text-xs text-muted-foreground">
-                  JPG, PNG, WEBP up to 10MB
+                  {t("disease.dropFormats")}
                 </p>
               </div>
             </motion.div>
@@ -139,7 +141,7 @@ export function DragDropUpload({ onFile, disabled }: DragDropUploadProps) {
               <div className="group relative overflow-hidden rounded-xl bg-muted">
                 <img
                   src={preview}
-                  alt={fileName ?? "Uploaded"}
+                  alt={fileName ?? t("disease.uploadTitle")}
                   className="h-48 w-full object-cover"
                 />
                 <div className="absolute inset-0 bg-black/0 transition-colors group-hover:bg-black/20" />
@@ -157,7 +159,7 @@ export function DragDropUpload({ onFile, disabled }: DragDropUploadProps) {
                 onClick={() => inputRef.current?.click()}
                 className="w-full rounded-lg border border-border py-2 text-xs font-medium text-muted-foreground transition-colors hover:bg-muted"
               >
-                Change Image
+                {t("disease.changeImage")}
               </button>
             </motion.div>
           )}

@@ -1,250 +1,192 @@
 "use client";
 
-import { useState, useCallback } from "react";
-import { motion, AnimatePresence } from "framer-motion";
-import {
-  Bug,
-  Leaf,
-  AlertTriangle,
-  FlaskConical,
-  ShieldCheck,
-  ListChecks,
-} from "lucide-react";
+import { useState, useCallback, useEffect, useRef } from "react";
+import { motion } from "framer-motion";
+import { Bug, Leaf, AlertTriangle, RotateCcw } from "lucide-react";
 import { DashboardLayout } from "@/components/layout/dashboard-layout";
+import { useTranslation } from "@/lib/i18n";
 import { CameraUpload } from "@/components/disease/camera-upload";
 import { DragDropUpload } from "@/components/disease/drag-drop-upload";
 import { DiseaseResultCard } from "@/components/disease/disease-result-card";
-import { ConfidenceGauge } from "@/components/disease/confidence-gauge";
+import { AnalysisDetails } from "@/components/disease/analysis-details";
 import { TreatmentCard } from "@/components/disease/treatment-card";
-import { DetectionHistory } from "@/components/disease/detection-history";
+import { DetectionHistory, type SessionHistoryEntry } from "@/components/disease/detection-history";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Badge } from "@/components/ui/badge";
-import { cn } from "@/lib/utils";
+import { ApiError } from "@/services/api";
+import {
+  analyzeDisease,
+  dataUrlToFile,
+  getDiseaseCapabilities,
+  isModelFailure,
+  isNoCoverage,
+  type DiseaseAnalysis,
+  type DiseaseCapabilities,
+} from "@/services/disease";
 
 type DetectionStatus = "idle" | "processing" | "complete" | "error";
 
-interface DetectionResult {
-  disease: string;
-  confidence: number;
-  severity: "low" | "moderate" | "high" | "critical";
-  boundingBoxes: { x: number; y: number; width: number; height: number; label: string }[];
-  imageUrl?: string;
+function errorKey(status: number, data: unknown): string {
+  const code =
+    typeof data === "object" && data !== null && "detail" in data
+      ? (data as { detail?: unknown }).detail
+      : null;
+  const inner =
+    typeof code === "object" && code !== null && "code" in code
+      ? String((code as { code?: unknown }).code ?? "")
+      : "";
+  if (status === 0) return "disease.errNetwork";
+  if (status === 400) {
+    if (inner === "IMAGE_TOO_LARGE") return "disease.errTooLarge";
+    if (inner === "IMAGE_POOR_QUALITY") return "disease.errPoorQuality";
+    if (inner === "UNSUPPORTED_CROP") return "disease.errUnsupportedCrop";
+    return "disease.errInvalid";
+  }
+  if (status === 502) return "disease.errModelFailure";
+  if (status === 503) {
+    if (inner === "NO_VALID_MODEL") return "disease.errNoCoverage";
+    return "disease.errModelFailure";
+  }
+  return "disease.errServer";
 }
-
-interface TreatmentData {
-  disease: string;
-  symptoms: string[];
-  actions: string[];
-  preventive: string[];
-  products: { name: string; dosage: string }[];
-}
-
-interface HistoryEntry {
-  id: string;
-  date: string;
-  crop: string;
-  disease: string;
-  confidence: number;
-  severity: "low" | "moderate" | "high" | "critical";
-  status: "resolved" | "treatment" | "pending";
-}
-
-const DISEASE_DATABASE: Record<string, { treatment: TreatmentData; severity: DetectionResult["severity"] }> = {
-  "Rice Blast": {
-    severity: "high",
-    treatment: {
-      disease: "Rice Blast",
-      symptoms: [
-        "Diamond-shaped lesions with gray centers on leaves",
-        "White to grey-green lesions with dark borders",
-        "Neck blast causes panicle to break and fall",
-        "Infected nodes turn black and rot",
-      ],
-      actions: [
-        "Remove and destroy infected plant debris immediately",
-        "Apply Tricyclazole 75% WP at 0.6g per liter of water",
-        "Spray Carbendazim 50% WP at 1g per liter of water",
-        "Maintain proper spacing for air circulation",
-        "Avoid excessive nitrogen fertilization",
-      ],
-      preventive: [
-        "Use resistant varieties like IR64, Pusa Basmati 1",
-        "Treat seeds with hot water (54°C for 10 minutes)",
-        "Practice crop rotation with legumes",
-        "Maintain proper field drainage",
-        "Monitor crop weekly during humid conditions",
-      ],
-      products: [
-        { name: "Tricyclazole 75% WP", dosage: "0.6g/L water" },
-        { name: "Carbendazim 50% WP", dosage: "1g/L water" },
-        { name: "Mancozeb 75% WP", dosage: "2.5g/L water" },
-      ],
-    },
-  },
-  "Wheat Rust": {
-    severity: "high",
-    treatment: {
-      disease: "Wheat Rust (Brown/Leaf Rust)",
-      symptoms: [
-        "Small orange-brown pustules on leaves in linear arrangement",
-        "Chlorotic patches surrounding pustules",
-        "Premature leaf senescence",
-        "Reduced grain filling and yield loss",
-      ],
-      actions: [
-        "Apply Propiconazole 25% EC at 1ml per liter of water",
-        "Spray Tebuconazole 250 EC at 1ml per liter of water",
-        "Repeat spray after 15 days if symptoms persist",
-        "Remove volunteer wheat plants from fields",
-        "Avoid wheat-on-wheat continuous cropping",
-      ],
-      preventive: [
-        "Grow rust-resistant varieties like HD 2967, PBW 550",
-        "Early sowing to escape disease pressure",
-        "Avoid dense planting - maintain recommended spacing",
-        "Balanced fertilization - avoid excess nitrogen",
-        "Monitor crop regularly during March-April",
-      ],
-      products: [
-        { name: "Propiconazole 25% EC", dosage: "1ml/L water" },
-        { name: "Tebuconazole 250 EC", dosage: "1ml/L water" },
-        { name: "Zineb 75% WP", dosage: "2g/L water" },
-      ],
-    },
-  },
-  "Cotton Leaf Curl": {
-    severity: "critical",
-    treatment: {
-      disease: "Cotton Leaf Curl Virus",
-      symptoms: [
-        "Leaf curling upward or downward with thickened veins",
-        "Stunted plant growth and shortened internodes",
-        "Vein darkening and formation of leaf-like enations",
-        "Reduced boll formation and poor fiber quality",
-      ],
-      actions: [
-        "Control whitefly vector with Imidacloprid 17.8% SL at 0.5ml/L",
-        "Remove and destroy infected plants immediately",
-        "Apply Neem oil 1% as botanical insecticide",
-        "Install yellow sticky traps at 12-15 per acre",
-        "Maintain weed-free field to reduce vector habitat",
-      ],
-      preventive: [
-        "Use resistant hybrids like RCH 659 BGII, NCS 2778 BGII",
-        "Avoid intercropping with okra, tomato, tobacco",
-        "Sow during recommended window to avoid peak whitefly",
-        "Border crop with maize or sorghum as barrier",
-        "Apply Imidacloprid seed treatment before sowing",
-      ],
-      products: [
-        { name: "Imidacloprid 17.8% SL", dosage: "0.5ml/L water" },
-        { name: "Neem Oil 1% EC", dosage: "5ml/L water" },
-        { name: "Yellow Sticky Traps", dosage: "12-15 per acre" },
-      ],
-    },
-  },
-  "Early Blight": {
-    severity: "moderate",
-    treatment: {
-      disease: "Early Blight (Tomato/Potato)",
-      symptoms: [
-        "Dark brown spots with concentric rings on older leaves",
-        "Yellowing and defoliation starting from lower leaves",
-        "Lesions on stems and fruits near calyx end",
-        "Target board pattern on infected tubers",
-      ],
-      actions: [
-        "Remove and destroy infected lower leaves",
-        "Apply Chlorothalonil 75% WP at 2g per liter of water",
-        "Spray Mancozeb 75% WP at 2g per liter of water",
-        "Ensure proper plant spacing for air circulation",
-        "Apply mulching to reduce soil splash",
-      ],
-      preventive: [
-        "Use certified disease-free seeds and tubers",
-        "Practice 3-year crop rotation",
-        "Avoid overhead irrigation - use drip irrigation",
-        "Apply copper-based fungicides preventively",
-        "Maintain proper plant nutrition with adequate potassium",
-      ],
-      products: [
-        { name: "Chlorothalonil 75% WP", dosage: "2g/L water" },
-        { name: "Mancozeb 75% WP", dosage: "2g/L water" },
-        { name: "Copper Oxychloride 50% WP", dosage: "3g/L water" },
-      ],
-    },
-  },
-};
-
-const MOCK_CROPS = ["Rice", "Wheat", "Cotton", "Tomato", "Potato", "Maize"];
-
-const MOCK_HISTORY: HistoryEntry[] = [
-  { id: "1", date: "2026-07-10T08:30:00Z", crop: "Rice", disease: "Rice Blast", confidence: 92, severity: "high", status: "treatment" },
-  { id: "2", date: "2026-07-05T10:15:00Z", crop: "Wheat", disease: "Wheat Rust", confidence: 78, severity: "moderate", status: "resolved" },
-  { id: "3", date: "2026-06-28T14:00:00Z", crop: "Cotton", disease: "Cotton Leaf Curl", confidence: 88, severity: "critical", status: "treatment" },
-  { id: "4", date: "2026-06-20T09:45:00Z", crop: "Tomato", disease: "Early Blight", confidence: 85, severity: "moderate", status: "resolved" },
-  { id: "5", date: "2026-06-12T11:30:00Z", crop: "Rice", disease: "Rice Blast", confidence: 65, severity: "low", status: "resolved" },
-  { id: "6", date: "2026-06-05T16:00:00Z", crop: "Potato", disease: "Early Blight", confidence: 95, severity: "high", status: "pending" },
-];
 
 export default function DiseaseDetectionPage() {
+  const { t, locale } = useTranslation();
   const [status, setStatus] = useState<DetectionStatus>("idle");
-  const [result, setResult] = useState<DetectionResult | null>(null);
-  const [treatment, setTreatment] = useState<TreatmentData | null>(null);
+  const [analysis, setAnalysis] = useState<DiseaseAnalysis | null>(null);
+  const [preview, setPreview] = useState<string | undefined>(undefined);
+  const [error, setError] = useState<string | null>(null);
+  const [cropHint, setCropHint] = useState<string>("");
+  const [capabilities, setCapabilities] = useState<DiseaseCapabilities | null>(null);
+  const [capsOffline, setCapsOffline] = useState(false);
+  const [history, setHistory] = useState<SessionHistoryEntry[]>([]);
+  // Full results kept in memory only (images never persisted).
+  const [resultCache, setResultCache] = useState<Record<string, DiseaseAnalysis>>({});
+  // Last submitted file, kept in memory so the farmer can re-analyze with a
+  // manually selected crop without re-uploading. Never persisted.
+  const [lastFile, setLastFile] = useState<{ file: File; preview: string } | null>(null);
+  // In-flight guard: one analysis at a time, so a single interaction can
+  // never produce two requests (and two history entries).
+  const inflight = useRef(false);
 
-  const simulateDetection = useCallback(async (imageUrl: string) => {
-    setStatus("processing");
-    setResult(null);
-    setTreatment(null);
-
-    await new Promise((resolve) => setTimeout(resolve, 2000 + Math.random() * 1000));
-
-    const diseaseNames = Object.keys(DISEASE_DATABASE);
-    const randomDisease = diseaseNames[Math.floor(Math.random() * diseaseNames.length)];
-    const db = DISEASE_DATABASE[randomDisease];
-    const confidence = 75 + Math.floor(Math.random() * 20);
-
-    const detectionResult: DetectionResult = {
-      disease: randomDisease,
-      confidence: confidence / 100,
-      severity: db.severity,
-      boundingBoxes: [
-        { x: 0.15, y: 0.2, width: 0.35, height: 0.45, label: randomDisease },
-      ],
-      imageUrl,
+  useEffect(() => {
+    let cancelled = false;
+    getDiseaseCapabilities()
+      .then((c) => {
+        if (!cancelled) setCapabilities(c);
+      })
+      .catch(() => {
+        if (!cancelled) setCapsOffline(true);
+      });
+    return () => {
+      cancelled = true;
     };
-
-    setResult(detectionResult);
-    setTreatment(db.treatment);
-    setStatus("complete");
   }, []);
 
-  const handleSelectHistory = useCallback((entry: HistoryEntry) => {
-    const db = DISEASE_DATABASE[entry.disease];
-    if (!db) return;
+  const runAnalysis = useCallback(
+    async (file: File, previewUrl: string) => {
+      if (inflight.current) return;
+      inflight.current = true;
+      setStatus("processing");
+      setAnalysis(null);
+      setPreview(previewUrl);
+      setError(null);
+      setLastFile({ file, preview: previewUrl });
+      try {
+        const result = await analyzeDisease(file, {
+          cropHint: cropHint || undefined,
+          language: locale,
+        });
+        setAnalysis(result);
+        setResultCache((c) => ({ ...c, [result.request_id]: result }));
+        const top = result.findings[0];
+        // A raw model class is NOT crop identification: when the crop is
+        // unknown and the outcome is uncertain, history records "no
+        // diagnosis" rather than the top raw class (e.g. a tomato label
+        // on a photo that may not be tomato at all).
+        const cropUnconfirmed =
+          result.crop.source === "unknown" && result.status === "uncertain";
+        const entry: SessionHistoryEntry = {
+          id: result.request_id,
+          date: new Date().toISOString(),
+          crop: result.crop.name,
+          cropStatus: result.crop.status,
+          disease: top && !cropUnconfirmed ? top.display_name : null,
+          band: top && !cropUnconfirmed ? top.confidence_band : null,
+          status: result.status,
+          reason: result.reason_code,
+        };
+        // Idempotent write: one history entry per request_id. A retry that
+        // somehow reuses an id updates the row instead of duplicating it.
+        setHistory((h) => [entry, ...h.filter((e) => e.id !== entry.id)].slice(0, 20));
+        setStatus("complete");
+      } catch (e) {
+        const key =
+          e instanceof ApiError ? errorKey(e.status, e.data) : "disease.errServer";
+        setError(t(key));
+        setStatus("error");
+      } finally {
+        inflight.current = false;
+      }
+    },
+    [cropHint, locale, t]
+  );
 
-    setResult({
-      disease: entry.disease,
-      confidence: entry.confidence / 100,
-      severity: entry.severity,
-      boundingBoxes: [
-        { x: 0.15, y: 0.2, width: 0.35, height: 0.45, label: entry.disease },
-      ],
-      imageUrl: undefined,
-    });
-    setTreatment(db.treatment);
-    setStatus("complete");
-  }, []);
+  const handleSelectHistory = useCallback(
+    (entry: SessionHistoryEntry) => {
+      const cached = resultCache[entry.id];
+      if (!cached) return;
+      setAnalysis(cached);
+      setPreview(undefined);
+      setError(null);
+      setStatus("complete");
+    },
+    [resultCache]
+  );
 
   const handleReset = useCallback(() => {
+    if (inflight.current) return;
     setStatus("idle");
-    setResult(null);
-    setTreatment(null);
+    setAnalysis(null);
+    setPreview(undefined);
+    setError(null);
+    setCropHint("");
+    setLastFile(null);
   }, []);
+
+  // "Analyze again" after manually selecting a crop: reuses the in-memory
+  // file, sends the new user-provided hint. The hint is routing context,
+  // never model evidence.
+  const handleAnalyzeAgain = useCallback(() => {
+    if (lastFile && !inflight.current) void runAnalysis(lastFile.file, lastFile.preview);
+  }, [lastFile, runAnalysis]);
+
+  const hasFinding =
+    analysis !== null &&
+    (analysis.status === "diagnosed" || analysis.status === "probable") &&
+    analysis.findings.length > 0;
+  const noCoverage = analysis !== null && isNoCoverage(analysis);
+  const modelFailure = analysis !== null && isModelFailure(analysis);
+  const poorImage =
+    analysis !== null &&
+    (analysis.status === "insufficient_image" || analysis.reason_code === "POOR_IMAGE_QUALITY");
+  const lowConfidence =
+    analysis !== null &&
+    analysis.status === "uncertain" &&
+    !noCoverage &&
+    !modelFailure;
+  // Model class outputs are only agronomically plausible alternatives when
+  // the crop context is established. With an unknown crop they are raw
+  // outputs (transparency section), never "Possible alternatives".
+  const cropKnown = analysis !== null && analysis.crop.source !== "unknown";
+  const showGuidance =
+    hasFinding && analysis !== null && analysis.knowledge.length > 0;
+  const supported = capabilities?.crops_with_production_specialist ?? [];
+  const taxonomyCrops = capabilities?.taxonomy_crops ?? [];
 
   return (
     <DashboardLayout>
-      <div className="mx-auto max-w-7xl space-y-6">
+      <div className="mx-auto max-w-7xl space-y-6" aria-live="polite">
         <motion.div
           initial={{ opacity: 0, y: -10 }}
           animate={{ opacity: 1, y: 0 }}
@@ -252,21 +194,30 @@ export default function DiseaseDetectionPage() {
         >
           <div>
             <h1 className="text-2xl font-bold tracking-tight text-foreground">
-              Disease Detection
+              {t("disease.title")}
             </h1>
             <p className="mt-1 text-sm text-muted-foreground">
-              Upload or capture crop images for AI-powered disease diagnosis
+              {t("disease.subtitle")}
             </p>
           </div>
           {status !== "idle" && (
             <button
               onClick={handleReset}
+              aria-label={t("disease.newDetection")}
               className="inline-flex items-center gap-2 rounded-lg border border-border px-4 py-2 text-sm font-medium text-foreground transition-colors hover:bg-muted"
             >
-              New Detection
+              <RotateCcw className="h-4 w-4" aria-hidden="true" />
+              {t("disease.newDetection")}
             </button>
           )}
         </motion.div>
+
+        {capsOffline && (
+          <div className="flex items-center gap-2 rounded-lg bg-amber-500/10 px-4 py-3 text-sm text-amber-600 dark:text-amber-400">
+            <AlertTriangle className="h-4 w-4 shrink-0" aria-hidden="true" />
+            {t("disease.capabilitiesOffline")}
+          </div>
+        )}
 
         <div className="grid gap-6 lg:grid-cols-5">
           <div className="space-y-6 lg:col-span-2">
@@ -276,9 +227,39 @@ export default function DiseaseDetectionPage() {
                 animate={{ opacity: 1 }}
                 className="space-y-6"
               >
-                <CameraUpload onCapture={simulateDetection} />
+                <div className="glass-card p-5">
+                  <label
+                    htmlFor="disease-crop-hint"
+                    className="mb-2 block text-sm font-medium text-foreground"
+                  >
+                    {t("disease.cropHintLabel")}
+                  </label>
+                  <select
+                    id="disease-crop-hint"
+                    value={cropHint}
+                    onChange={(e) => setCropHint(e.target.value)}
+                    className="w-full rounded-lg border border-border bg-background px-3 py-2 text-sm outline-none focus:ring-1 focus:ring-primary"
+                  >
+                    <option value="">{t("disease.cropHintAuto")}</option>
+                    {taxonomyCrops.map((c) => (
+                      <option key={c} value={c}>
+                        {c}
+                        {supported.includes(c) ? "" : ` (${t("disease.coverageBadge")})`}
+                      </option>
+                    ))}
+                  </select>
+                  <p className="mt-2 text-xs text-muted-foreground">
+                    {t("disease.supportedCropsNote")}:{" "}
+                    {supported.length > 0 ? supported.join(", ") : "—"}
+                  </p>
+                </div>
+                <CameraUpload
+                  onCapture={(dataUrl) =>
+                    runAnalysis(dataUrlToFile(dataUrl), dataUrl)
+                  }
+                />
                 <DragDropUpload
-                  onFile={(_file, preview) => simulateDetection(preview)}
+                  onFile={(file, previewUrl) => runAnalysis(file, previewUrl)}
                 />
               </motion.div>
             )}
@@ -297,7 +278,7 @@ export default function DiseaseDetectionPage() {
                         transition={{ duration: 2, repeat: Infinity, ease: "linear" }}
                         className="flex h-16 w-16 items-center justify-center"
                       >
-                        <Leaf className="h-8 w-8 text-primary" />
+                        <Leaf className="h-8 w-8 text-primary" aria-hidden="true" />
                       </motion.div>
                       <motion.div
                         animate={{ scale: [1, 1.2, 1] }}
@@ -306,10 +287,10 @@ export default function DiseaseDetectionPage() {
                       />
                     </div>
                     <p className="text-sm font-medium text-foreground">
-                      Analyzing your crop image...
+                      {t("disease.stageAnalyzing")}
                     </p>
                     <p className="text-xs text-muted-foreground">
-                      AI is scanning for disease patterns
+                      {t("disease.analyzingBody")}
                     </p>
                   </div>
                 </div>
@@ -318,20 +299,35 @@ export default function DiseaseDetectionPage() {
               </motion.div>
             )}
 
-            {status === "complete" && result && (
+            {(status === "complete" || status === "error") && analysis && (
               <motion.div
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}
                 className="space-y-6"
               >
-                <DiseaseResultCard result={result} />
-                <div className="flex justify-center">
-                  <ConfidenceGauge
-                    value={result.confidence * 100}
-                    label="AI Confidence"
-                  />
-                </div>
+                {preview && (
+                  <div className="glass-card overflow-hidden">
+                    <img
+                      src={preview}
+                      alt={t("disease.uploadedPhoto")}
+                      className="h-48 w-full object-cover"
+                    />
+                  </div>
+                )}
+                <AnalysisDetails result={analysis} />
               </motion.div>
+            )}
+
+            {status === "error" && !analysis && (
+              <div className="glass-card space-y-3 p-6 text-center">
+                <AlertTriangle className="mx-auto h-8 w-8 text-red-500" aria-hidden="true" />
+                <p className="text-sm font-medium text-foreground">
+                  {error ?? t("disease.errServer")}
+                </p>
+                <p className="text-xs text-muted-foreground">
+                  {t("disease.analyzeAnotherHint")}
+                </p>
+              </div>
             )}
           </div>
 
@@ -343,44 +339,211 @@ export default function DiseaseDetectionPage() {
                 className="flex flex-col items-center justify-center rounded-xl border-2 border-dashed border-muted-foreground/20 py-16"
               >
                 <div className="flex h-20 w-20 items-center justify-center rounded-full bg-muted">
-                  <Bug className="h-10 w-10 text-muted-foreground/50" />
+                  <Bug className="h-10 w-10 text-muted-foreground/50" aria-hidden="true" />
                 </div>
                 <h3 className="mt-4 text-lg font-semibold text-foreground">
-                  Ready to Diagnose
+                  {t("disease.readyTitle")}
                 </h3>
                 <p className="mt-2 max-w-sm text-center text-sm text-muted-foreground">
-                  Upload or capture a photo of the affected crop to get instant
-                  AI-powered disease detection and treatment recommendations
+                  {t("disease.readyBody")}
                 </p>
-                <div className="mt-6 flex flex-wrap justify-center gap-2">
-                  {Object.keys(DISEASE_DATABASE).map((d) => (
-                    <Badge key={d} variant="secondary" className="text-[10px]">
-                      {d}
-                    </Badge>
-                  ))}
-                </div>
+                {capabilities && (
+                  <div className="mt-6 max-w-md px-4">
+                    <p className="mb-2 text-center text-xs font-medium text-foreground">
+                      {t("disease.coverageTitle")}
+                    </p>
+                    <p className="text-center text-xs text-muted-foreground">
+                      {t("disease.coverageBody", {
+                        count: capabilities.production_models.length,
+                      })}
+                    </p>
+                    {supported.length > 0 && (
+                      <div className="mt-3 flex flex-wrap justify-center gap-2">
+                        {supported.map((c) => (
+                          <Badge key={c} variant="secondary" className="text-[10px]">
+                            {c}
+                          </Badge>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                )}
               </motion.div>
             )}
 
             {status === "processing" && (
               <div className="space-y-6">
+                <div className="glass-card space-y-2 p-6">
+                  <p className="text-sm font-medium text-foreground">
+                    {t("disease.stepsTitle")}
+                  </p>
+                  <ul className="space-y-1 text-sm text-muted-foreground">
+                    <li>{t("disease.stepUpload")}</li>
+                    <li>{t("disease.stepQuality")}</li>
+                    <li>{t("disease.stepRouting")}</li>
+                    <li>{t("disease.stepAnalysis")}</li>
+                    <li>{t("disease.stepVerify")}</li>
+                  </ul>
+                </div>
                 <Skeleton className="h-64 rounded-xl" />
                 <Skeleton className="h-48 rounded-xl" />
                 <Skeleton className="h-32 rounded-xl" />
               </div>
             )}
 
-            {status === "complete" && treatment && (
+            {status === "complete" && analysis && hasFinding && (
               <motion.div
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}
                 className="space-y-6"
               >
-                <TreatmentCard data={treatment} />
+                <DiseaseResultCard result={analysis} imageUrl={preview} />
+                {showGuidance && <TreatmentCard knowledge={analysis.knowledge} />}
               </motion.div>
             )}
 
-            <DetectionHistory entries={MOCK_HISTORY} onSelect={handleSelectHistory} />
+            {status === "complete" && analysis && !hasFinding && (
+              <motion.div
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                className="glass-card space-y-4 p-6"
+              >
+                <div className="flex items-center gap-3">
+                  <AlertTriangle
+                    className="h-6 w-6 text-amber-500"
+                    aria-hidden="true"
+                    aria-label={t("disease.analysisIncomplete")}
+                  />
+                  <h3 className="text-base font-semibold text-foreground">
+                    {noCoverage
+                      ? t("disease.noCoverageTitle")
+                      : modelFailure
+                        ? t("disease.temporaryAnalysisFailure")
+                        : poorImage
+                          ? t("disease.photoNeedsImprovement")
+                          : t("disease.lowConfidenceTitle")}
+                  </h3>
+                </div>
+
+                {noCoverage && (
+                  <Badge variant="outline" className="text-[11px]">
+                    {t("disease.coverageBadge")}
+                  </Badge>
+                )}
+                {modelFailure && (
+                  <Badge variant="outline" className="text-[11px]">
+                    {t("disease.serviceBadge")}
+                  </Badge>
+                )}
+
+                <p className="text-sm font-medium text-foreground">
+                  {t("disease.noVerifiedDiagnosis")}
+                </p>
+                <p className="text-sm text-muted-foreground">
+                  {noCoverage
+                    ? analysis.crop.status === "unknown"
+                      ? t("disease.cropUnknownNoModel")
+                      : t("disease.noSpecialistAvailable")
+                    : modelFailure
+                      ? t("disease.modelFailureBody")
+                      : lowConfidence && !cropKnown
+                        ? t("disease.cropUnknownWeakEvidence")
+                        : lowConfidence
+                          ? t("disease.lowConfidenceBody")
+                          : analysis.next_action}
+                </p>
+
+                {lowConfidence && !cropKnown && (
+                  <div data-testid="unknown-crop-row" className="flex items-center gap-2 text-sm">
+                    <span className="text-muted-foreground">{t("disease.cropLabel")}:</span>
+                    <span className="font-medium text-foreground">
+                      {analysis.crop.name ?? t("disease.cropNotIdentified")}
+                    </span>
+                  </div>
+                )}
+
+                {cropKnown && (noCoverage || lowConfidence) && analysis.alternatives.length > 0 && (
+                  <div>
+                    <p className="mb-2 text-sm font-medium text-foreground">
+                      {t("disease.possibleCauses")}
+                    </p>
+                    <div className="flex flex-wrap gap-2">
+                      {analysis.alternatives.map((a) => (
+                        <Badge key={a.disease_id} variant="secondary">
+                          {a.display_name}
+                        </Badge>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                <div>
+                  <p className="mb-2 text-sm font-medium text-foreground">
+                    {t("disease.whyLabel")}
+                  </p>
+                  <p className="rounded-lg bg-muted/50 px-4 py-3 text-sm text-muted-foreground">
+                    {lowConfidence && !cropKnown
+                      ? t("disease.unknownCropWhy")
+                      : analysis.next_action}
+                  </p>
+                </div>
+
+                <div>
+                  <p className="mb-2 text-sm font-medium text-foreground">
+                    {t("disease.whatToDoLabel")}
+                  </p>
+                  <div className="flex flex-wrap items-center gap-2">
+                    {(noCoverage || lowConfidence) && (
+                      <>
+                        <label
+                          htmlFor="disease-recrop"
+                          className="text-sm text-muted-foreground"
+                        >
+                          {t("disease.selectCropPrompt")}
+                        </label>
+                        <select
+                          id="disease-recrop"
+                          value={cropHint}
+                          onChange={(e) => setCropHint(e.target.value)}
+                          className="rounded-lg border border-border bg-background px-3 py-2 text-sm outline-none focus:ring-1 focus:ring-primary"
+                        >
+                          <option value="">{t("disease.cropHintAuto")}</option>
+                          {taxonomyCrops.map((c) => (
+                            <option key={c} value={c}>
+                              {c}
+                            </option>
+                          ))}
+                        </select>
+                        <button
+                          onClick={handleAnalyzeAgain}
+                          disabled={!lastFile || !cropHint}
+                          className="rounded-lg bg-primary px-4 py-2 text-sm font-medium text-primary-foreground transition-opacity disabled:opacity-50"
+                        >
+                          {t("disease.analyzeAgain")}
+                        </button>
+                      </>
+                    )}
+                    {modelFailure && (
+                      <button
+                        onClick={handleAnalyzeAgain}
+                        disabled={!lastFile}
+                        className="rounded-lg bg-primary px-4 py-2 text-sm font-medium text-primary-foreground transition-opacity disabled:opacity-50"
+                      >
+                        {t("disease.retryAnalysis")}
+                      </button>
+                    )}
+                    <button
+                      onClick={handleReset}
+                      className="rounded-lg border border-border px-4 py-2 text-sm font-medium text-foreground transition-colors hover:bg-muted"
+                    >
+                      {t("disease.analyzeAnotherPhoto")}
+                    </button>
+                  </div>
+                </div>
+              </motion.div>
+            )}
+
+            <DetectionHistory entries={history} onSelect={handleSelectHistory} />
           </div>
         </div>
       </div>

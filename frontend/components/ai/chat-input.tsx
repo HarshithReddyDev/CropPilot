@@ -4,6 +4,7 @@ import { useState, useRef, useCallback, useEffect, KeyboardEvent } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Send, Sparkles } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { useTranslation } from "@/lib/i18n";
 import { FileUpload } from "./file-upload";
 import { VoiceInput } from "./voice-input";
 
@@ -12,15 +13,19 @@ interface ChatInputProps {
   disabled?: boolean;
   placeholder?: string;
   suggestedPrompts?: string[];
+  voiceStartSignal?: number;
 }
 
 export function ChatInput({
   onSend,
   disabled,
-  placeholder = "Ask about crops, diseases, markets, schemes...",
+  placeholder = undefined,
   suggestedPrompts,
+  voiceStartSignal,
 }: ChatInputProps) {
+  const { t } = useTranslation();
   const [input, setInput] = useState("");
+  const resolvedPlaceholder = placeholder ?? t("assistant.inputDefault");
   const [isFocused, setIsFocused] = useState(false);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
 
@@ -107,13 +112,13 @@ export function ChatInput({
             onKeyDown={handleKeyDown}
             onFocus={() => setIsFocused(true)}
             onBlur={() => setIsFocused(false)}
-            placeholder={placeholder}
+            placeholder={placeholder ?? resolvedPlaceholder}
             disabled={disabled}
             rows={1}
             className="flex-1 resize-none bg-transparent px-4 py-3 text-sm text-foreground placeholder:text-muted-foreground/60 outline-none max-h-[200px] scrollbar-thin"
           />
-          <div className="flex items-center gap-1 pr-2 pb-2">
-            <VoiceInput onTranscript={handleVoiceTranscript} disabled={disabled} />
+          <div className="flex items-center gap-1 pe-2 pb-2">
+            <VoiceInput onTranscript={handleVoiceTranscript} disabled={disabled} startSignal={voiceStartSignal} />
           </div>
         </div>
 

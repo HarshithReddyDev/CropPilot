@@ -17,6 +17,7 @@ import {
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useUiStore } from "@/stores/ui-store";
+import { useTranslation } from "@/lib/i18n";
 
 const pages = [
   { label: "Dashboard", href: "/dashboard", icon: LayoutDashboard, keywords: "home main" },
@@ -40,6 +41,7 @@ const quickActions = [
 ];
 
 export function CommandPalette() {
+  const { t } = useTranslation();
   const router = useRouter();
   const { commandPaletteOpen, setCommandPaletteOpen } = useUiStore();
 
@@ -85,11 +87,11 @@ export function CommandPalette() {
             className="fixed left-1/2 top-[15%] w-full max-w-lg -translate-x-1/2"
           >
             <div className="overflow-hidden rounded-xl border border-border bg-card shadow-2xl">
-              <Command className="w-full" label="Command palette">
+              <Command className="w-full" label={t("common.commandPalette")}>
                 <div className="flex items-center border-b border-border px-4">
                   <Search className="mr-2 h-4 w-4 shrink-0 text-muted-foreground" />
                   <Command.Input
-                    placeholder="Search pages or type a command..."
+                    placeholder={t("assistant.paletteSearch")}
                     className="flex h-12 w-full bg-transparent text-sm text-foreground outline-none placeholder:text-muted-foreground"
                     autoFocus
                   />
@@ -99,7 +101,7 @@ export function CommandPalette() {
                 </div>
                 <Command.List className="max-h-72 overflow-y-auto p-2">
                   <Command.Empty className="py-6 text-center text-sm text-muted-foreground">
-                    No results found.
+                    {t("assistant.paletteEmpty")}
                   </Command.Empty>
 
                   <Command.Group heading="Quick Actions">

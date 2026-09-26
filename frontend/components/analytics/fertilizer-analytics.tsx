@@ -18,6 +18,7 @@ import {
 import { FlaskConical, TrendingDown, CheckCircle2 } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { cn } from "@/lib/utils";
+import { useTranslation } from "@/lib/i18n";
 
 const npkUsage = [
   { month: "Jan", N: 40, P: 25, K: 20 },
@@ -85,6 +86,7 @@ const CustomTooltip = ({ active, payload, label }: any) => {
 };
 
 export function FertilizerAnalytics() {
+  const { t } = useTranslation();
   return (
     <div className="space-y-6">
       <div className="grid grid-cols-4 gap-4">
@@ -106,7 +108,7 @@ export function FertilizerAnalytics() {
 
       <Card>
         <CardHeader>
-          <CardTitle className="text-base">N / P / K Usage Over Time</CardTitle>
+          <CardTitle className="text-base">{t("analytics.chFertNPK")}</CardTitle>
         </CardHeader>
         <CardContent>
           <div className="h-72">
@@ -129,7 +131,7 @@ export function FertilizerAnalytics() {
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         <Card>
           <CardHeader>
-            <CardTitle className="text-base">Fertilizer Type Breakdown</CardTitle>
+            <CardTitle className="text-base">{t("analytics.chFertBreakdown")}</CardTitle>
           </CardHeader>
           <CardContent>
             <div className="h-64">
@@ -158,7 +160,7 @@ export function FertilizerAnalytics() {
 
         <Card>
           <CardHeader>
-            <CardTitle className="text-base">Cost Analysis vs Recommended</CardTitle>
+            <CardTitle className="text-base">{t("analytics.chFertCost")}</CardTitle>
           </CardHeader>
           <CardContent>
             <div className="h-64">
@@ -195,7 +197,7 @@ export function FertilizerAnalytics() {
 
       <Card>
         <CardHeader>
-          <CardTitle className="text-base">Schedule Recommendations</CardTitle>
+          <CardTitle className="text-base">{t("analytics.chWaterSchedule")}</CardTitle>
         </CardHeader>
         <CardContent>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">

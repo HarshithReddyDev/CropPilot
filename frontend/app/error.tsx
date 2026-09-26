@@ -4,6 +4,7 @@ import { useEffect } from "react";
 import { motion } from "framer-motion";
 import { AlertTriangle } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { useTranslation } from "@/lib/i18n";
 
 interface ErrorProps {
   error: Error & { digest?: string };
@@ -11,6 +12,7 @@ interface ErrorProps {
 }
 
 export default function Error({ error, reset }: ErrorProps) {
+  const { t } = useTranslation();
   useEffect(() => {
     console.error(error);
   }, [error]);
@@ -39,7 +41,7 @@ export default function Error({ error, reset }: ErrorProps) {
             transition={{ delay: 0.2 }}
             className="mb-2 text-2xl font-bold text-foreground"
           >
-            Something went wrong
+            {t("assistant.errorTitle")}
           </motion.h1>
           <motion.p
             initial={{ opacity: 0, y: 10 }}
@@ -47,7 +49,7 @@ export default function Error({ error, reset }: ErrorProps) {
             transition={{ delay: 0.3 }}
             className="mb-6 text-sm text-muted-foreground"
           >
-            {error.message || "An unexpected error occurred. Please try again."}
+            {error.message || t("assistant.errorFallback")}
           </motion.p>
           <motion.div
             initial={{ opacity: 0, y: 10 }}
@@ -55,7 +57,7 @@ export default function Error({ error, reset }: ErrorProps) {
             transition={{ delay: 0.4 }}
           >
             <Button onClick={reset} variant="default" size="lg">
-              Try again
+              {t("common.retry")}
             </Button>
           </motion.div>
         </div>

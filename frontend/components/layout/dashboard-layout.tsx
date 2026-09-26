@@ -54,12 +54,12 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
               animate={{ x: 0 }}
               exit={{ x: "-100%" }}
               transition={{ type: "spring", damping: 30, stiffness: 300 }}
-              className="fixed inset-y-0 left-0 z-50 w-72 lg:hidden"
+              className="fixed inset-y-0 start-0 z-50 w-72 lg:hidden"
             >
               <div className="relative h-full">
                 <button
                   onClick={() => setMobileMenuOpen(false)}
-                  className="absolute -right-10 top-4 flex h-8 w-8 items-center justify-center rounded-full bg-card shadow-lg border border-border"
+                  className="absolute -end-10 top-4 flex h-8 w-8 items-center justify-center rounded-full bg-card shadow-lg border border-border"
                 >
                   <X className="h-4 w-4" />
                 </button>

@@ -8,9 +8,11 @@ import { SchemeCard } from "@/components/schemes/scheme-card";
 import { SchemeDetail } from "@/components/schemes/scheme-detail";
 import { MOCK_SCHEMES, SCHEME_CATEGORIES } from "@/lib/schemes-data";
 import { cn } from "@/lib/utils";
+import { useTranslation } from "@/lib/i18n";
 import type { GovernmentScheme } from "@/types";
 
 export default function SchemesPage() {
+  const { t } = useTranslation();
   const [activeCategory, setActiveCategory] = useState<string>("All");
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedScheme, setSelectedScheme] = useState<GovernmentScheme | null>(null);
@@ -45,21 +47,22 @@ export default function SchemesPage() {
         className="space-y-6"
       >
         <div>
-          <h1 className="text-2xl font-bold text-foreground">Government Schemes</h1>
+          <h1 className="text-2xl font-bold text-foreground">{t("schemes.title")}</h1>
           <p className="mt-1 text-sm text-muted-foreground">
-            Discover and apply for agricultural schemes, subsidies, and welfare programs
+            {t("schemes.subtitle")}
           </p>
         </div>
 
         <div className="flex flex-wrap items-center gap-3">
           <div className="relative flex-1 min-w-[200px] max-w-sm">
-            <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+            <Search className="absolute start-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
             <input
               type="text"
-              placeholder="Search schemes by name, description, tags..."
+              placeholder={t("schemes.search")}
+              aria-label={t("schemes.search")}
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="h-9 w-full rounded-lg border border-input bg-background pl-9 pr-3 text-sm placeholder:text-muted-foreground focus:outline-none focus:ring-1 focus:ring-ring"
+              className="h-9 w-full rounded-lg border border-input bg-background ps-9 pe-3 text-sm placeholder:text-muted-foreground focus:outline-none focus:ring-1 focus:ring-ring"
             />
           </div>
         </div>
@@ -76,7 +79,7 @@ export default function SchemesPage() {
                   : "bg-muted text-muted-foreground hover:text-foreground hover:bg-muted/80"
               )}
             >
-              {cat}
+              {cat === "All" ? t("schemes.all") : cat}
             </button>
           ))}
         </div>
@@ -96,9 +99,9 @@ export default function SchemesPage() {
             <div className="flex h-16 w-16 items-center justify-center rounded-2xl bg-muted">
               <Search className="h-8 w-8 text-muted-foreground" />
             </div>
-            <h3 className="mt-4 text-lg font-semibold text-foreground">No schemes found</h3>
+            <h3 className="mt-4 text-lg font-semibold text-foreground">{t("schemes.noFound")}</h3>
             <p className="mt-1 text-sm text-muted-foreground">
-              Try adjusting your search or filter criteria
+              {t("schemes.noFoundBody")}
             </p>
           </div>
         )}

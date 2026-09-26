@@ -13,6 +13,7 @@ import {
   Bot,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { useTranslation } from "@/lib/i18n";
 import { formatTime } from "@/lib/utils";
 import type { ChatMessage as ChatMessageType } from "@/types";
 import { MarkdownRenderer } from "./markdown-renderer";
@@ -23,6 +24,7 @@ interface ChatMessageProps {
 }
 
 export function ChatMessage({ message, isTyping }: ChatMessageProps) {
+  const { t } = useTranslation();
   const [copied, setCopied] = useState(false);
   const [feedback, setFeedback] = useState<"up" | "down" | null>(null);
   const [sourcesOpen, setSourcesOpen] = useState(false);
@@ -81,7 +83,8 @@ export function ChatMessage({ message, isTyping }: ChatMessageProps) {
               <button
                 onClick={handleCopy}
                 className="flex h-6 w-6 items-center justify-center rounded hover:bg-accent transition-colors"
-                title="Copy response"
+                title={copied ? t("assistant.copied") : t("assistant.copyResponse")}
+                aria-label={copied ? t("assistant.copied") : t("assistant.copyResponse")}
               >
                 {copied ? (
                   <Check className="h-3 w-3 text-primary" />
@@ -95,7 +98,8 @@ export function ChatMessage({ message, isTyping }: ChatMessageProps) {
                   "flex h-6 w-6 items-center justify-center rounded hover:bg-accent transition-colors",
                   feedback === "up" && "text-primary"
                 )}
-                title="Helpful"
+                title={t("assistant.helpful")}
+                aria-label={t("assistant.helpful")}
               >
                 <ThumbsUp className="h-3 w-3" />
               </button>
@@ -105,7 +109,8 @@ export function ChatMessage({ message, isTyping }: ChatMessageProps) {
                   "flex h-6 w-6 items-center justify-center rounded hover:bg-accent transition-colors",
                   feedback === "down" && "text-destructive"
                 )}
-                title="Not helpful"
+                title={t("assistant.notHelpful")}
+                aria-label={t("assistant.notHelpful")}
               >
                 <ThumbsDown className="h-3 w-3" />
               </button>
@@ -130,14 +135,16 @@ export function ChatMessage({ message, isTyping }: ChatMessageProps) {
               ) : (
                 <ChevronRight className="h-3 w-3" />
               )}
-              {message.sources.length} source{message.sources.length > 1 ? "s" : ""}
+              {message.sources.length > 1
+                ? t("assistant.sourcesCountPlural", { count: message.sources.length })
+                : t("assistant.sourcesCount", { count: message.sources.length })}
             </button>
             {sourcesOpen && (
               <motion.div
                 initial={{ opacity: 0, height: 0 }}
                 animate={{ opacity: 1, height: "auto" }}
                 exit={{ opacity: 0, height: 0 }}
-                className="mt-1 space-y-1.5 pl-3"
+                className="mt-1 space-y-1.5 ps-3"
               >
                 {message.sources.map((source, idx) => (
                   <div

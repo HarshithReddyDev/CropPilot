@@ -42,3 +42,6 @@ class FarmService:
         deleted = await farm_repository.delete(db, farm_id)
         if not deleted:
             raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Farm not found")
+
+
+farm_service = FarmService()

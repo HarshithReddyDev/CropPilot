@@ -1,0 +1,23 @@
+{
+ "app\\auth\\login\\page.tsx": [
+  [
+   92,
+   "attr-placeholder",
+   "farmer@example.com"
+  ]
+ ],
+ "app\\auth\\register\\page.tsx": [
+  [
+   167,
+   "attr-placeholder",
+   "farmer@example.com"
+  ]
+ ],
+ "components\\weather\\hourly-forecast.tsx": [
+  [
+   38,
+   "jsx-text",
+   "= 6 && hour"
+  ]
+ ]
+}

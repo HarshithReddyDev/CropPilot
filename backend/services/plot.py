@@ -73,3 +73,6 @@ class PlotService:
     ) -> list[PlotResponse]:
         plots = await plot_repository.get_nearby_plots(db, h3_index)
         return [PlotResponse.model_validate(p) for p in plots]
+
+
+plot_service = PlotService()

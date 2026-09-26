@@ -5,6 +5,7 @@ import { Wallet, TrendingDown, TrendingUp } from "lucide-react";
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Cell } from "recharts";
 import { cn, formatCurrency } from "@/lib/utils";
 import type { DashboardData } from "@/lib/constants";
+import { useTranslation } from "@/lib/i18n";
 
 interface ExpensesCardProps {
   data: DashboardData["expenses"];
@@ -12,13 +13,14 @@ interface ExpensesCardProps {
 }
 
 export function ExpensesCard({ data, className }: ExpensesCardProps) {
+  const { t } = useTranslation();
   const isPositive = data.comparison >= 0;
 
   return (
     <div className={cn("glass-card p-5", className)}>
       <div className="flex items-center gap-2 mb-3">
         <Wallet className="h-5 w-5 text-primary" />
-        <h3 className="font-semibold text-sm">Expenses</h3>
+        <h3 className="font-semibold text-sm">{t("dashboard.wExpenses")}</h3>
       </div>
 
       <div className="flex items-baseline justify-between mb-1">
@@ -31,7 +33,7 @@ export function ExpensesCard({ data, className }: ExpensesCardProps) {
           {isPositive ? "+" : ""}{data.comparison}%
         </div>
       </div>
-      <p className="text-xs text-muted-foreground mb-3">vs last month</p>
+      <p className="text-xs text-muted-foreground mb-3">{t("dashboard.vsLastMonth")}</p>
 
       <div className="h-[160px] w-full">
         <ResponsiveContainer width="100%" height="100%">

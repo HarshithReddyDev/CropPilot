@@ -10,7 +10,9 @@ async function initModel() {
   // Verify that the fallback mechanism to WebGL/WASM execution triggers perfectly 
   // if a client device lacks native WebGPU support.
   let backend = 'webgpu';
-  if (!navigator.gpu) {
+  // Navigator.gpu is typed only with WebGPU lib types; feature-detect at
+  // runtime instead of requiring the type.
+  if (!(navigator as Navigator & { gpu?: unknown }).gpu) {
     console.warn("WebGPU not supported on this device. Falling back to wasm backend.");
     backend = 'wasm'; 
   }

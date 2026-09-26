@@ -15,6 +15,7 @@ import {
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
+import { useTranslation } from "@/lib/i18n";
 
 interface Insight {
   id: string;
@@ -90,6 +91,7 @@ const impactStyles = {
 };
 
 export function InsightsPanel() {
+  const { t } = useTranslation();
   const [insights, setInsights] = useState<Insight[]>(initialInsights);
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [dismissed, setDismissed] = useState<Set<string>>(new Set());
@@ -115,7 +117,7 @@ export function InsightsPanel() {
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2">
             <Lightbulb className="h-4 w-4 text-amber-500" />
-            <CardTitle className="text-sm">AI Insights</CardTitle>
+            <CardTitle className="text-sm">{t("analytics.chInsights")}</CardTitle>
           </div>
           <Button
             variant="ghost"
