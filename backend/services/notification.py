@@ -48,3 +48,6 @@ class NotificationService:
 
     async def mark_all_as_read(self, db: AsyncSession, user_id: UUID):
         await notification_repository.mark_all_as_read(db, user_id)
+
+
+notification_service = NotificationService()

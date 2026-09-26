@@ -6,6 +6,7 @@ import { cn } from "@/lib/utils";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import type { DashboardData } from "@/lib/constants";
+import { useTranslation } from "@/lib/i18n";
 
 interface DiseaseAlertsProps {
   data: DashboardData["diseaseAlerts"];
@@ -19,17 +20,18 @@ const severityConfig = {
 };
 
 export function DiseaseAlerts({ data, className }: DiseaseAlertsProps) {
+  const { t } = useTranslation();
   if (data.alerts.length === 0) {
     return (
       <div className={cn("glass-card p-5", className)}>
         <div className="flex items-center gap-2 mb-4">
           <Bug className="h-5 w-5 text-primary" />
-          <h3 className="font-semibold text-sm">Disease Alerts</h3>
+          <h3 className="font-semibold text-sm">{t("dashboard.wDiseaseAlerts")}</h3>
         </div>
         <div className="flex flex-col items-center justify-center py-8 text-muted-foreground">
           <Bug className="h-10 w-10 mb-2 opacity-30" />
-          <p className="text-sm">No active disease alerts</p>
-          <p className="text-xs">Your crops are healthy</p>
+          <p className="text-sm">{t("dashboard.noAlerts")}</p>
+          <p className="text-xs">{t("dashboard.cropsHealthy")}</p>
         </div>
       </div>
     );
@@ -40,7 +42,7 @@ export function DiseaseAlerts({ data, className }: DiseaseAlertsProps) {
       <div className="flex items-center justify-between mb-4">
         <div className="flex items-center gap-2">
           <Bug className="h-5 w-5 text-primary" />
-          <h3 className="font-semibold text-sm">Disease Alerts</h3>
+          <h3 className="font-semibold text-sm">{t("dashboard.wDiseaseAlerts")}</h3>
         </div>
         <Badge variant="destructive" size="sm">{data.total} active</Badge>
       </div>

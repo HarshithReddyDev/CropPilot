@@ -23,9 +23,9 @@ async def create_plot(
 
 @router.get("", response_model=list[PlotResponse])
 async def list_plots(
-    farm_id: UUID | None = Query(None),
     db: Annotated[AsyncSession, Depends(get_db)],
     current_user: Annotated[User, Depends(get_current_user)],
+    farm_id: UUID | None = Query(None),
 ):
     if farm_id:
         return await plot_service.get_plots_by_farm(db, farm_id)
@@ -34,9 +34,9 @@ async def list_plots(
 
 @router.get("/nearby", response_model=list[PlotResponse])
 async def get_nearby_plots(
-    h3_index: str = Query(...),
     db: Annotated[AsyncSession, Depends(get_db)],
     current_user: Annotated[User, Depends(get_current_user)],
+    h3_index: str = Query(...),
 ):
     return await plot_service.get_nearby_plots(db, h3_index)
 

@@ -1,6 +1,7 @@
 "use client";
 
-import { useState, useCallback, useRef, useEffect } from "react";
+import { useState, useCallback, useRef, useEffect, useMemo } from "react";
+import { useRouter } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
 import { MessageSquare, Bot, Sparkles } from "lucide-react";
 import { DashboardLayout } from "@/components/layout/dashboard-layout";
@@ -10,288 +11,34 @@ import { ConversationSidebar } from "@/components/ai/conversation-sidebar";
 import { SuggestedPrompts } from "@/components/ai/suggested-prompts";
 import type { ChatMessage, Source } from "@/types";
 import { generateId } from "@/lib/utils";
+import { useLocaleStore } from "@/stores/locale-store";
+import { useTranslation } from "@/lib/i18n";
+import {
+  postChat,
+  streamChat,
+  pageContext,
+  takeMapAssistantContext,
+  type AssistantReply,
+  type AssistantUIAction,
+} from "@/services/assistant";
 
 const WELCOME_MESSAGE: ChatMessage = {
   id: "welcome",
   role: "assistant",
-  content:
-    "Hello! I'm **CropPilot AI** — your intelligent agricultural assistant. 🌾\n\nI can help you with:\n\n- **Crop management** — sowing, irrigation, fertilization schedules\n- **Disease detection** — identify and treat crop diseases\n- **Market analysis** — real-time mandi prices and trends\n- **Government schemes** — find schemes you're eligible for\n- **Weather insights** — forecast and its impact on your crops\n\nWhat would you like to know about your farm today?",
+  content: "",
   timestamp: new Date().toISOString(),
 };
 
-const MOCK_RESPONSES: Record<string, string> = {
-  default: `Great question! Let me share some insights based on current agricultural data.
-
-## Key Recommendations
-
-1. **Soil Preparation** — Ensure proper soil testing before sowing. The ideal pH for most crops is between 6.0 and 7.5.
-
-2. **Nutrient Management** — Apply recommended doses of NPK fertilizers based on soil test results.
-
-3. **Water Management** — Implement drip irrigation for better water efficiency. It can save up to 40% water compared to flood irrigation.
-
-4. **Pest Control** — Regular monitoring is essential. Use integrated pest management (IPM) techniques.
-
-## Quick Tips
-
-- Always source certified seeds from reputable dealers
-- Maintain proper crop rotation to prevent soil-borne diseases
-- Monitor weather forecasts regularly for timely farm operations
-
-Need more specific advice? Feel free to ask about any particular crop or issue!`,
-
-  wheat: `Here's a comprehensive guide for **wheat cultivation in Punjab**:
-
-## Sowing Time
-| Season | Sowing Period | Harvest |
-|--------|--------------|---------|
-| Rabi | Oct-Nov | Apr-May |
-
-## Recommended Varieties
-- **HD 2967** — High yield, rust resistant
-- **HD 3086** — Excellent for Punjab conditions
-- **PBW 723** — Biofortified, zinc-rich
-
-## Fertilizer Schedule (per hectare)
-| Nutrient | Basal Dose | Top Dressing |
-|----------|-----------|--------------|
-| Nitrogen | 60 kg | 60 kg (at CRI stage) |
-| Phosphorus | 50 kg | — |
-| Potash | 40 kg | — |
-
-## Irrigation
-- **Critical stages:** Crown root initiation (CRI), tillering, flowering, grain filling
-- Total of 5-6 irrigations recommended for optimal yield
-
-- **Average yield:** 45-50 quintals/hectare
-- **MSP (2025):** ₹2,425/quintal
-
-> Pro tip: Apply first irrigation at CRI stage (21-25 days after sowing) for optimal tillering!`,
-
-  disease: `## Leaf Blight in Tomatoes — Identification & Treatment
-
-### Symptoms
-| Symptom | Description |
-|---------|------------|
-| **Leaf spots** | Dark brown to black, irregular spots with yellow halos |
-| **Stem lesions** | Elongated dark lesions on stems |
-| **Fruit rot** | Sunken, dark, leathery spots on fruits |
-| **Defoliation** | Severe leaf drop in advanced stages |
-
-### Management Strategy
-
-#### 1. Cultural Control 🛡️
-- Remove and destroy infected plant debris
-- Practice crop rotation (avoid solanaceous crops for 2-3 years)
-- Ensure proper spacing for air circulation
-- Avoid overhead irrigation
-
-#### 2. Chemical Control 🧪
-| Fungicide | Dosage | Interval |
-|-----------|--------|----------|
-| Mancozeb (75% WP) | 2.5 g/L | 7-10 days |
-| Chlorothalonil | 2 g/L | 10-14 days |
-| Copper Oxychloride | 3 g/L | 7-10 days |
-
-#### 3. Biological Control 🌿
-- Apply *Trichoderma viride* (5 g/L) as soil treatment
-- Use *Pseudomonas fluorescens* for seed treatment
-- Neem oil (3%) spray as preventive measure
-
-### Prevention Tips ✅
-- Use disease-free certified seeds
-- Treat seeds with hot water (52°C for 30 min)
-- Apply mulching to reduce soil splash
-
-Need help identifying a specific disease? Upload a photo of the affected plant and I'll help diagnose it!`,
-
-  market: `## Current Market Prices in Punjab
-
-### Today's Mandi Rates 🏪
-
-| Commodity | Variety | Modal Price (₹/quintal) | Change |
-|-----------|---------|------------------------|--------|
-| **Wheat** | Sharbati | 2,625 | ▲ +2.3% |
-| **Rice** | Pusa 1121 | 3,450 | ▲ +1.8% |
-| **Maize** | Hybrid | 1,875 | ▼ -0.6% |
-| **Cotton** | Bt | 5,620 | ▲ +4.2% |
-| **Potato** | Jyoti | 1,280 | ▼ -1.5% |
-| **Onion** | Red | 1,850 | ▲ +3.1% |
-
-### Market Insights 📊
-
-**Top Gainers:**
-- **Cotton** (+4.2%) — Strong export demand driving prices up
-- **Onion** (+3.1%) — Lower arrival volumes due to off-season
-
-**Top Losers:**
-- **Potato** (-1.5%) — Increased supply from cold storage releases
-- **Maize** (-0.6%) — Steady arrivals from Kharif harvest
-
-### Recommendations 💡
-- **Hold** wheat stock until December for better prices
-- **Sell** cotton now as prices are at seasonal highs
-- Consider **forward contracts** for wheat at current MSP levels
-
-> *Prices sourced from AGMARKNET. Last updated: Today 10:30 AM*`,
-
-  schemes: `## Government Schemes for Small Farmers 🇮🇳
-
-Based on your profile, here are the schemes you're **eligible** for:
-
-### 1. PM-KISAN Samman Nidhi ✅
-| Detail | Info |
-|--------|------|
-| **Benefit** | ₹6,000/year in 3 equal installments |
-| **Eligibility** | All small & marginal farmers |
-| **Status** | **You can apply** — Direct benefit transfer to bank |
-| **Documents** | Aadhaar, land records, bank account |
-
-### 2. Pradhan Mantri Fasal Bima Yojana ✅
-| Detail | Info |
-|--------|------|
-| **Coverage** | Crop loss due to natural calamities |
-| **Premium** | 2% (Kharif) / 1.5% (Rabi) — balance subsidized |
-| **Status** | Enroll before sowing deadline |
-
-### 3. Soil Health Card Scheme ✅
-| Detail | Info |
-|--------|------|
-| **Benefit** | Free soil testing & fertilizer recommendations |
-| **Valid for** | 2 years |
-| **Apply at** | Nearest agriculture office or online |
-
-### 4. Kisan Credit Card (KCC) ✅
-| Detail | Info |
-|--------|------|
-| **Loan limit** | Up to ₹3 lakh at 4% interest (prompt repayment) |
-| **Purpose** | Crop cultivation, maintenance, marketing |
-
-### How to Apply 📝
-1. Visit [PM-KISAN portal](https://pmkisan.gov.in) or nearest CSC
-2. Have Aadhaar and land records ready
-3. Submit application online — it takes **15 minutes**
-
-Would you like me to help you fill out any of these applications?`,
-
-  weather: `## Weather Impact on Kharif Crops 🌤️
-
-### Current Conditions
-| Parameter | Value | Status |
-|-----------|-------|--------|
-| Temperature | 32°C | Normal |
-| Humidity | 68% | Moderate |
-| Rainfall | 12 mm (last 24h) | Adequate |
-| Wind | 12 km/h | Gentle breeze |
-
-### 7-Day Forecast
-
-| Day | Temp | Rain Probability | Advisory |
-|-----|------|-----------------|----------|
-| Today | 30-34°C | 30% | Continue irrigation schedule |
-| Tomorrow | 28-32°C | 60% | Postpone pesticide spray |
-| Day 3 | 26-30°C | 80% | **Heavy rain alert** — Check drainage |
-| Day 4 | 27-31°C | 40% | Resume normal operations |
-| Day 5 | 29-33°C | 20% | Ideal for fertilizer application |
-| Day 6 | 30-34°C | 10% | Good for harvesting |
-| Day 7 | 31-35°C | 15% | Monitor for pest activity |
-
-### Crop-Specific Recommendations
-
-- **Rice (Kharif):** Ensure adequate water in standing crop. The forecast rain will help reduce irrigation needs.
-- **Cotton:** Watch for bollworm activity in high humidity. Spray recommended after rains subside.
-- **Maize:** Good time for top dressing of nitrogen before the expected heavy rain.
-
-### Precautions ⚠️
-1. Clear drainage channels before Day 3
-2. Store harvested produce in covered area
-3. Delay any pesticide/fertilizer application until after rain
-4. Use plastic mulching to protect young seedlings`,
-
-  rotation: `## Crop Rotation Plan for Your Farm 🌾
-
-Based on your soil type and region, here's an **optimal 3-year rotation cycle**:
-
-### Year 1: Soil Building
-| Season | Crop | Benefit |
-|--------|------|---------|
-| **Kharif** | Green Manure (Dhaincha/Sesbania) | Fixes nitrogen, improves organic matter |
-| **Rabi** | Wheat | Good residue for next crop |
-
-### Year 2: Cash Crops
-| Season | Crop | Benefit |
-|--------|------|---------|
-| **Kharif** | Cotton | Deep root system breaks hardpan |
-| **Rabi** | Chickpea (Chana) | Legume fixes atmospheric nitrogen |
-
-### Year 3: Cereal Rotation
-| Season | Crop | Benefit |
-|--------|------|---------|
-| **Kharif** | Rice/Paddy | Utilizes residual nutrients |
-| **Rabi** | Mustard | Biofumigation controls soil pests |
-
-### Soil Management Tips 🧑‍🌾
-
-| Practice | Timing | Benefit |
-|----------|--------|---------|
-| **Soil testing** | Before each Kharif | Prevents over-fertilization |
-| **Compost application** | 5 tonnes/ha annually | Improves soil structure |
-| **Lime/Gypsum** | As per soil test | Corrects pH/sodicity |
-| **Deep ploughing** | Once in 3 years | Breaks hardpan, improves drainage |
-
-### Expected Benefits 📈
-- **20-30%** increase in overall productivity
-- **15-20%** reduction in fertilizer costs
-- **40%** reduction in pest incidence
-- Improved soil health and water retention
-
-Would you like me to create a customized plan for your specific farm size and location?`,
-};
-
-function getMockResponse(message: string): string {
-  const lower = message.toLowerCase();
-  if (lower.includes("wheat") && (lower.includes("punjab") || lower.includes("cultivat"))) return MOCK_RESPONSES.wheat;
-  if (lower.includes("blight") || lower.includes("disease") || lower.includes("pest") || lower.includes("fungus") || lower.includes("mildew")) return MOCK_RESPONSES.disease;
-  if (lower.includes("market") || lower.includes("price") || lower.includes("mandi") || lower.includes("sell") || lower.includes("rate")) return MOCK_RESPONSES.market;
-  if (lower.includes("scheme") || lower.includes("government") || lower.includes("subsidy") || lower.includes("pm") || lower.includes("kisan")) return MOCK_RESPONSES.schemes;
-  if (lower.includes("weather") || lower.includes("rain") || lower.includes("forecast") || lower.includes("temperature")) return MOCK_RESPONSES.weather;
-  if (lower.includes("rotation") || lower.includes("soil") || lower.includes("planning") || lower.includes("crop rotation")) return MOCK_RESPONSES.rotation;
-  return MOCK_RESPONSES.default;
+function welcomeContent(t: (key: string) => string): string {
+  // Catalog holds the full localized welcome; empty means a locale that
+  // fell back before catalogs loaded — use English inline as last resort.
+  return t("assistant.welcome") === "assistant.welcome"
+    ? "Hello! I'm **CropPilot AI**."
+    : t("assistant.welcome");
 }
 
-function extractSources(content: string): Source[] {
-  const sources: Source[] = [];
-  const tableMatch = content.match(/\|.*\|/g);
-  if (tableMatch && tableMatch.length > 1) {
-    sources.push({
-      title: "Agricultural Data Reference",
-      content: "Government published agricultural statistics and recommendations",
-      score: 0.92,
-    });
-  }
-  if (content.includes("MSP") || content.includes("₹")) {
-    sources.push({
-      title: "Mandi Price Report",
-      content: "AGMARKNET and e-NAM market intelligence data",
-      score: 0.88,
-    });
-  }
-  if (content.includes("PM-KISAN") || content.includes("Fasal Bima") || content.includes("Kisan Credit Card")) {
-    sources.push({
-      title: "Government Schemes Database",
-      content: "Official Indian government agricultural scheme documentation",
-      score: 0.95,
-    });
-  }
-  if (sources.length === 0) {
-    sources.push({
-      title: "CropPilot Knowledge Base",
-      content: "AI-generated agricultural advisory based on best practices",
-      score: 0.85,
-    });
-  }
-  return sources;
-}
+
+
 
 interface Conversation {
   id: string;
@@ -301,22 +48,76 @@ interface Conversation {
   messageCount: number;
 }
 
+const THREAD_STORE_KEY = "croppilot-assistant-threads-v1";
+
+interface ThreadStore {
+  threads: Record<string, ChatMessage[]>;
+  serverIds: Record<string, string>;
+  conversations: Conversation[];
+  active: string;
+}
+
+function loadThreadStore(): ThreadStore | null {
+  try {
+    const raw = localStorage.getItem(THREAD_STORE_KEY);
+    if (!raw) return null;
+    const parsed = JSON.parse(raw) as Partial<ThreadStore>;
+    if (!parsed || typeof parsed !== "object" || !parsed.threads) return null;
+    return {
+      threads: parsed.threads as Record<string, ChatMessage[]>,
+      serverIds: (parsed.serverIds ?? {}) as Record<string, string>,
+      conversations: (parsed.conversations ?? []) as Conversation[],
+      active: typeof parsed.active === "string" ? parsed.active : "conv-default",
+    };
+  } catch {
+    return null;
+  }
+}
+
 export default function AiAssistantPage() {
-  const [messages, setMessages] = useState<ChatMessage[]>([WELCOME_MESSAGE]);
+  const { t } = useTranslation();
+  const welcome = useMemo(
+    () => ({ ...WELCOME_MESSAGE, content: welcomeContent(t) }),
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [t]
+  );
+  const [store] = useState<ThreadStore | null>(() =>
+    typeof window === "undefined" ? null : loadThreadStore()
+  );
+  const [messages, setMessages] = useState<ChatMessage[]>(
+    () =>
+      (store && store.threads[store.active]) || [welcome]
+  );
   const [isGenerating, setIsGenerating] = useState(false);
-  const [conversations, setConversations] = useState<Conversation[]>([
-    {
-      id: "conv-default",
-      title: "Welcome to CropPilot",
-      preview: "Hello! I'm CropPilot AI...",
-      date: new Date().toISOString(),
-      messageCount: 1,
-    },
-  ]);
-  const [activeConversation, setActiveConversation] = useState<string>("conv-default");
+  const [conversations, setConversations] = useState<Conversation[]>(
+    () =>
+      (store && store.conversations.length && store.conversations) || [
+        {
+          id: "conv-default",
+          title: t("assistant.welcomeTitle"),
+          preview: t("assistant.welcomePreview"),
+          date: new Date().toISOString(),
+          messageCount: 1,
+        },
+      ]
+  );
+  const [activeConversation, setActiveConversation] = useState<string>(
+    () => (store && store.threads[store.active] && store.active) || "conv-default"
+  );
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const [mobileSidebarOpen, setMobileSidebarOpen] = useState(false);
   const abortRef = useRef<(() => void) | null>(null);
+  const threadsRef = useRef<Record<string, ChatMessage[]>>(
+    (store && store.threads) || {
+      "conv-default": [welcome],
+    }
+  );
+  // Server-owned conversation ids (Phase 7 memory). Local thread keys stay
+  // stable; the server id is sent once known so follow-ups share history.
+  const serverIdsRef = useRef<Record<string, string>>(
+    (store && store.serverIds) || {}
+  );
+  const router = useRouter();
 
   useEffect(() => {
     const handleResize = () => {
@@ -329,18 +130,107 @@ export default function AiAssistantPage() {
     return () => window.removeEventListener("resize", handleResize);
   }, []);
 
+  // Persist the active thread on every change so switching
+  // conversations (and full page reloads) restore per-conversation messages.
+  useEffect(() => {
+    threadsRef.current[activeConversation] = messages;
+    try {
+      const snapshot: ThreadStore = {
+        threads: threadsRef.current,
+        serverIds: serverIdsRef.current,
+        conversations,
+        active: activeConversation,
+      };
+      localStorage.setItem(THREAD_STORE_KEY, JSON.stringify(snapshot));
+    } catch {
+      // Storage full or unavailable: threads still work for this session.
+    }
+  }, [messages, conversations, activeConversation]);
+
+  // Cross-page bridge (§23): markets/schemes/weather pages dispatch
+  // `croppilot:send-chat` to push a message into the assistant.
+  // Global mic (§16): header dispatches `croppilot:start-voice`, or
+  // navigates here with ?voice=1; both increment the voice signal.
+  const [voiceSignal, setVoiceSignal] = useState(0);
+  const sendRef = useRef<(content: string) => void>(() => {});
+  useEffect(() => {
+    const listener = (e: Event) => {
+      const text = (e as CustomEvent<string>).detail;
+      if (typeof text === "string" && text.trim()) sendRef.current(text);
+    };
+    const voiceListener = () => setVoiceSignal((n) => n + 1);
+    window.addEventListener("croppilot:send-chat", listener);
+    window.addEventListener("croppilot:start-voice", voiceListener);
+    const params = new URLSearchParams(window.location.search);
+    if (params.get("voice") === "1") {
+      window.history.replaceState({}, "", window.location.pathname);
+      setVoiceSignal((n) => n + 1);
+    }
+    return () => {
+      window.removeEventListener("croppilot:send-chat", listener);
+      window.removeEventListener("croppilot:start-voice", voiceListener);
+    };
+  }, []);
+
+  const applyUiActions = useCallback(
+    (actions: AssistantUIAction[]) => {
+      for (const a of actions ?? []) {
+        const p = (a.payload ?? {}) as Record<string, unknown>;
+        if (a.action === "apply-market-filters" || a.action === "open-market") {
+          const q = new URLSearchParams();
+          for (const k of ["state", "district", "market", "commodity", "variety", "grade"]) {
+            if (typeof p[k] === "string" && (p[k] as string).trim()) q.set(k, p[k] as string);
+          }
+          router.push(`/markets${q.toString() ? `?${q.toString()}` : ""}`);
+        } else if (a.action === "open-article") {
+          // Defense in depth: backend strips off-spec keys (no url survives),
+          // but never open non-http(s) targets even if malformed data arrives.
+          if (typeof p.url === "string" && /^https?:\/\//i.test(p.url))
+            window.open(p.url, "_blank", "noopener");
+        } else if (a.action === "assistant.set_language") {
+          // Store sanitizes against the canonical 23-locale registry;
+          // unshipped catalogs fall back to English strings.
+          if (typeof p.language === "string" && p.language.trim()) {
+            useLocaleStore.getState().setLocale(p.language);
+          }
+        } else if (a.action === "page.read_aloud") {
+          // Frontend-determined eligible content only: headings + text
+          // of <main>, bounded. Explicit browser speech fallback (server
+          // TTS unavailable until engines install).
+          try {
+            const main = document.querySelector("main");
+            const text = (main?.innerText ?? "").replace(/\s+/g, " ").trim().slice(0, 2000);
+            if (text && "speechSynthesis" in window) {
+              window.speechSynthesis.cancel();
+              window.speechSynthesis.speak(new SpeechSynthesisUtterance(text));
+            }
+          } catch {
+            // Reading must never break the chat turn.
+          }
+        } else if (a.action === "navigation.open_page") {
+          // Frontend-validated: internal allow-listed pages only, never URLs.
+          if (typeof p.page === "string" && /^(dashboard|markets|weather|disease-detection|schemes|analytics|maps|ai-assistant)$/.test(p.page)) {
+            router.push(`/${p.page}`);
+          }
+        }
+        // follow-market / play-audio: no Phase 5 surface; action validated server-side.
+      }
+    },
+    [router]
+  );
+
   const createNewConversation = useCallback(() => {
     const id = generateId();
     const conv: Conversation = {
       id,
-      title: "New Chat",
-      preview: "Start a conversation...",
+      title: t("assistant.newChatTitle"),
+      preview: t("assistant.newChatPreview"),
       date: new Date().toISOString(),
       messageCount: 0,
     };
     setConversations((prev) => [conv, ...prev]);
     setActiveConversation(id);
-    setMessages([WELCOME_MESSAGE]);
+    setMessages([welcome]);
   }, []);
 
   const handleSend = useCallback(
@@ -369,67 +259,101 @@ export default function AiAssistantPage() {
         )
       );
 
-      const fullResponse = getMockResponse(content);
-      const sources = extractSources(fullResponse);
-      const words = fullResponse.split(" ");
-      let accumulated = "";
-      let wordIndex = 0;
-      let cancelled = false;
-
-      abortRef.current = () => {
-        cancelled = true;
-      };
-
       const assistantId = generateId();
       const assistantMessage: ChatMessage = {
         id: assistantId,
         role: "assistant",
         content: "",
         timestamp: new Date().toISOString(),
-        sources,
       };
       setMessages((prev) => [...prev, assistantMessage]);
 
-      const typeNextChunk = () => {
-        if (cancelled) {
+      const patch = (content: string, sources?: Source[]) => {
+        setMessages((prev) =>
+          prev.map((m) =>
+            m.id === assistantId
+              ? { ...m, content, ...(sources ? { sources } : {}) }
+              : m
+          )
+        );
+      };
+
+      const finish = (reply: AssistantReply) => {
+        if (reply.conversation_id) serverIdsRef.current[activeConversation] = reply.conversation_id;
+        const sources: Source[] = (reply.citations ?? []).map((c) => ({
+          title: c.title || c.source || "Source",
+          content: c.snippet || "",
+          score: c.score ?? undefined,
+        }));
+        patch(reply.text || "Empty response.", sources.length ? sources : undefined);
+        if (reply.ui_actions?.length) applyUiActions(reply.ui_actions);
+        setIsGenerating(false);
+        abortRef.current = null;
+        setConversations((prev) =>
+          prev.map((c) =>
+            c.id === activeConversation
+              ? { ...c, messageCount: c.messageCount + 1 }
+              : c
+          )
+        );
+      };
+
+      const ctrl = new AbortController();
+      abortRef.current = () => ctrl.abort();
+      let accumulated = "";
+      const serverId = serverIdsRef.current[activeConversation];
+      // Page-aware context: route + UI language flow into every turn.
+      // A fresh map handoff (location/layers/market) is attached once so
+      // "what are the nearby markets?" works without retyping coordinates.
+      const ctx = { ...pageContext(), page: "ai-assistant" };
+      const mapCtx = takeMapAssistantContext();
+      const ctxWithMap = mapCtx
+        ? { ...ctx, page_filters: { ...(ctx.page_filters ?? {}), map: mapCtx } }
+        : ctx;
+
+      try {
+        const streamed = await streamChat(content, serverId, {
+          signal: ctrl.signal,
+          onDelta: (d) => {
+            accumulated += d;
+            patch(accumulated);
+          },
+          onFinal: (reply) => finish(reply),
+          onError: (msg) => {
+            patch(msg || t("assistant.offline"));
+            setIsGenerating(false);
+            abortRef.current = null;
+          },
+        }, ctxWithMap);
+        // SSE unavailable: fall back to the non-streaming turn.
+        if (!streamed && !ctrl.signal.aborted) finish(await postChat(content, serverId, ctxWithMap));
+      } catch (e) {
+        if (ctrl.signal.aborted) {
           setIsGenerating(false);
           return;
         }
-
-        const chunkSize = Math.floor(Math.random() * 3) + 1;
-        const chunk = words.slice(wordIndex, wordIndex + chunkSize).join(" ");
-        accumulated += (accumulated ? " " : "") + chunk;
-        wordIndex += chunkSize;
-
-        setMessages((prev) =>
-          prev.map((m) =>
-            m.id === assistantId ? { ...m, content: accumulated } : m
-          )
-        );
-
-        if (wordIndex < words.length) {
-          const delay = 30 + Math.random() * 50;
-          setTimeout(typeNextChunk, delay);
-        } else {
+        try {
+          finish(await postChat(content, serverId, ctxWithMap));
+        } catch (e2) {
+          patch(t("assistant.offlineBackend"));
           setIsGenerating(false);
           abortRef.current = null;
-          setConversations((prev) =>
-            prev.map((c) =>
-              c.id === activeConversation
-                ? { ...c, messageCount: c.messageCount + 1 }
-                : c
-            )
-          );
         }
-      };
-
-      setTimeout(typeNextChunk, 300);
+      }
     },
-    [activeConversation]
+    [activeConversation, applyUiActions]
   );
+
+  useEffect(() => {
+    sendRef.current = handleSend;
+  }, [handleSend]);
+
+  // Leaving the page must not leave a dangling SSE request behind.
+  useEffect(() => () => abortRef.current?.(), []);
 
   const handleSelectConversation = useCallback(
     (id: string) => {
+      setMessages(threadsRef.current[id] ?? [welcome]);
       setActiveConversation(id);
       setMobileSidebarOpen(false);
     },
@@ -437,12 +361,14 @@ export default function AiAssistantPage() {
   );
 
   const handleDeleteConversation = useCallback((id: string) => {
+    delete threadsRef.current[id];
     setConversations((prev) => prev.filter((c) => c.id !== id));
     if (id === activeConversation) {
-      setMessages([WELCOME_MESSAGE]);
+      threadsRef.current["conv-default"] = threadsRef.current["conv-default"] ?? [welcome];
+      setMessages(threadsRef.current["conv-default"]);
       setActiveConversation("conv-default");
     }
-  }, [activeConversation]);
+  }, [activeConversation, welcome]);
 
   const handlePromptSelect = useCallback(
     (prompt: string) => {
@@ -544,13 +470,15 @@ export default function AiAssistantPage() {
           <ChatInput
             onSend={handleSend}
             disabled={isGenerating}
+            voiceStartSignal={voiceSignal}
+            placeholder={t("assistant.placeholder")}
             suggestedPrompts={
               messages.length <= 1
                 ? [
-                    "Best practices for wheat cultivation",
-                    "Identify tomato leaf blight",
-                    "Current mandi prices",
-                    "Government schemes for farmers",
+                    t("assistant.promptPaddy"),
+                    t("assistant.promptDisease"),
+                    t("assistant.promptMarket"),
+                    t("assistant.promptSchemes"),
                   ]
                 : undefined
             }

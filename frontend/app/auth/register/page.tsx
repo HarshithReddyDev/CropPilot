@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
@@ -16,6 +16,7 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { INDIAN_STATES } from "@/lib/constants";
 import { useAuth } from "@/hooks/use-auth";
+import { useTranslation } from "@/lib/i18n";
 
 const districtsByState: Record<string, string[]> = {
   "Maharashtra": ["Mumbai", "Pune", "Nagpur", "Thane", "Nashik", "Aurangabad", "Solapur", "Kolhapur"],
@@ -32,31 +33,33 @@ const districtsByState: Record<string, string[]> = {
   "Delhi": ["New Delhi", "Central Delhi", "South Delhi", "North Delhi", "East Delhi", "West Delhi"],
 };
 
-const registerSchema = z
-  .object({
-    fullName: z.string().min(2, "Full name must be at least 2 characters"),
-    email: z.string().min(1, "Email is required").email("Invalid email address"),
-    phone: z
-      .string()
-      .min(10, "Phone number must be at least 10 digits")
-      .max(15, "Phone number too long")
-      .regex(/^\+?[\d\s-]+$/, "Invalid phone number"),
-    state: z.string().min(1, "Please select a state"),
-    district: z.string().min(1, "Please select a district"),
-    password: z.string().min(6, "Password must be at least 6 characters"),
-    confirmPassword: z.string().min(1, "Please confirm your password"),
-    acceptTerms: z.boolean().refine((v) => v === true, {
-      message: "You must accept the terms and conditions",
-    }),
-  })
-  .refine((data) => data.password === data.confirmPassword, {
-    message: "Passwords do not match",
-    path: ["confirmPassword"],
-  });
+const registerSchema = (t: (key: string) => string) =>
+  z
+    .object({
+      fullName: z.string().min(2, t("auth.nameMin")),
+      email: z.string().min(1, t("auth.emailRequired")).email(t("auth.emailInvalid")),
+      phone: z
+        .string()
+        .min(10, t("auth.phoneMin"))
+        .max(15, t("auth.phoneLong"))
+        .regex(/^\+?[\d\s-]+$/, t("auth.phoneInvalid")),
+      state: z.string().min(1, t("auth.selectStateRequired")),
+      district: z.string().min(1, t("auth.selectDistrictRequired")),
+      password: z.string().min(6, t("auth.passwordMin")),
+      confirmPassword: z.string().min(1, t("auth.confirmRequired")),
+      acceptTerms: z.boolean().refine((v) => v === true, {
+        message: t("auth.acceptTerms"),
+      }),
+    })
+    .refine((data) => data.password === data.confirmPassword, {
+      message: t("auth.passwordMismatch"),
+      path: ["confirmPassword"],
+    });
 
-type RegisterForm = z.infer<typeof registerSchema>;
+type RegisterForm = z.infer<ReturnType<typeof registerSchema>>;
 
 export default function RegisterPage() {
+  const { t } = useTranslation();
   const router = useRouter();
   const { register: registerUser } = useAuth();
   const [showPassword, setShowPassword] = useState(false);
@@ -70,7 +73,7 @@ export default function RegisterPage() {
     watch,
     formState: { errors },
   } = useForm<RegisterForm>({
-    resolver: zodResolver(registerSchema),
+    resolver: zodResolver(registerSchema(t)),
     defaultValues: {
       fullName: "",
       email: "",
@@ -101,7 +104,7 @@ export default function RegisterPage() {
       router.push("/dashboard");
     } catch (e: unknown) {
       const message =
-        e instanceof Error ? e.message : "Registration failed. Please try again.";
+        e instanceof Error ? e.message : t("auth.registerFailed");
       setError(message);
     }
   };
@@ -113,8 +116,8 @@ export default function RegisterPage() {
         animate={{ opacity: 1, y: 0 }}
         transition={{ delay: 0.1 }}
       >
-        <h1 className="text-2xl font-bold text-foreground">Create Account</h1>
-        <p className="mt-1 text-sm text-muted-foreground">Join CropPilot and start your smart farming journey</p>
+        <h1 className="text-2xl font-bold text-foreground">{t("auth.createAccount")}</h1>
+        <p className="mt-1 text-sm text-muted-foreground">{t("auth.registerSubtitle")}</p>
 
         {error && (
           <motion.div
@@ -129,10 +132,10 @@ export default function RegisterPage() {
         <form onSubmit={handleSubmit(onSubmit)} className="mt-8 space-y-5">
           <div className="grid gap-5 sm:grid-cols-2">
             <div className="space-y-2">
-              <Label htmlFor="fullName">Full Name</Label>
+              <Label htmlFor="fullName">{t("auth.fullName")}</Label>
               <Input
                 id="fullName"
-                placeholder="Harsh Raj"
+                placeholder={t("auth.fullNamePlaceholder")}
                 {...register("fullName")}
                 className={errors.fullName ? "border-destructive" : ""}
               />
@@ -142,7 +145,7 @@ export default function RegisterPage() {
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="phone">Phone Number</Label>
+              <Label htmlFor="phone">{t("auth.phone")}</Label>
               <Input
                 id="phone"
                 type="tel"
@@ -172,7 +175,7 @@ export default function RegisterPage() {
 
           <div className="grid gap-5 sm:grid-cols-2">
             <div className="space-y-2">
-              <Label htmlFor="state">State</Label>
+              <Label htmlFor="state">{t("markets.state")}</Label>
               <Select
                 value={watch("state")}
                 onValueChange={(v) => {
@@ -181,7 +184,7 @@ export default function RegisterPage() {
                 }}
               >
                 <SelectTrigger className={errors.state ? "border-destructive" : ""}>
-                  <SelectValue placeholder="Select state" />
+                  <SelectValue placeholder={t("auth.selectState")} />
                 </SelectTrigger>
                 <SelectContent>
                   {INDIAN_STATES.map((s) => (
@@ -195,14 +198,14 @@ export default function RegisterPage() {
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="district">District</Label>
+              <Label htmlFor="district">{t("markets.district")}</Label>
               <Select
                 value={watch("district")}
                 disabled={!stateValue}
                 onValueChange={(v) => setValue("district", v, { shouldValidate: true })}
               >
                 <SelectTrigger className={errors.district ? "border-destructive" : ""}>
-                  <SelectValue placeholder={stateValue ? "Select district" : "Select state first"} />
+                  <SelectValue placeholder={stateValue ? t("auth.selectDistrict") : t("markets.selectStateFirst")} />
                 </SelectTrigger>
                 <SelectContent>
                   {districts.map((d) => (
@@ -218,19 +221,20 @@ export default function RegisterPage() {
 
           <div className="grid gap-5 sm:grid-cols-2">
             <div className="space-y-2">
-              <Label htmlFor="password">Password</Label>
+              <Label htmlFor="password">{t("auth.password")}</Label>
               <div className="relative">
                 <Input
                   id="password"
                   type={showPassword ? "text" : "password"}
-                  placeholder="Create a password"
+                  placeholder={t("auth.createPassword")}
                   {...register("password")}
                   className={errors.password ? "border-destructive pr-10" : "pr-10"}
                 />
                 <button
                   type="button"
                   onClick={() => setShowPassword(!showPassword)}
-                  className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
+                  aria-label={showPassword ? t("auth.hidePassword") : t("auth.showPassword")}
+                  className="absolute end-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
                 >
                   {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
                 </button>
@@ -241,19 +245,20 @@ export default function RegisterPage() {
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="confirmPassword">Confirm Password</Label>
+              <Label htmlFor="confirmPassword">{t("auth.confirmPassword")}</Label>
               <div className="relative">
                 <Input
                   id="confirmPassword"
                   type={showConfirmPassword ? "text" : "password"}
-                  placeholder="Confirm your password"
+                  placeholder={t("auth.confirmPasswordPlaceholder")}
                   {...register("confirmPassword")}
                   className={errors.confirmPassword ? "border-destructive pr-10" : "pr-10"}
                 />
                 <button
                   type="button"
                   onClick={() => setShowConfirmPassword(!showConfirmPassword)}
-                  className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
+                  aria-label={showConfirmPassword ? t("auth.hidePassword") : t("auth.showPassword")}
+                  className="absolute end-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
                 >
                   {showConfirmPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
                 </button>
@@ -271,13 +276,13 @@ export default function RegisterPage() {
               onCheckedChange={(v) => setValue("acceptTerms", v === true as unknown as true, { shouldValidate: true })}
             />
             <Label htmlFor="acceptTerms" className="text-sm font-normal text-muted-foreground cursor-pointer leading-relaxed">
-              I accept the{" "}
+              {t("auth.acceptPrefix")}{" "}
               <Link href="/terms" className="font-medium text-primary hover:text-primary/80">
-                Terms of Service
+                {t("auth.termsService")}
               </Link>{" "}
-              and{" "}
+              {t("auth.termsAnd")}{" "}
               <Link href="/privacy" className="font-medium text-primary hover:text-primary/80">
-                Privacy Policy
+                {t("auth.privacyPolicy")}
               </Link>
             </Label>
           </div>
@@ -289,18 +294,18 @@ export default function RegisterPage() {
             {registerUser.isPending ? (
               <>
                 <Loader2 className="h-4 w-4 animate-spin" />
-                Creating account...
+                {t("auth.creatingAccount")}
               </>
             ) : (
-              "Create Account"
+              t("auth.createAccount")
             )}
           </Button>
         </form>
 
         <p className="mt-6 text-center text-sm text-muted-foreground">
-          Already have an account?{" "}
+          {t("auth.haveAccount")}{" "}
           <Link href="/auth/login" className="font-medium text-primary hover:text-primary/80 transition-colors">
-            Sign in
+            {t("auth.signInLink")}
           </Link>
         </p>
       </motion.div>

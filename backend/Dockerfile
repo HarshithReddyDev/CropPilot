@@ -15,9 +15,14 @@ FROM python:3.12-slim
 RUN apt-get update && apt-get install -y --no-install-recommends \
     libpq-dev \
     curl \
+    espeak-ng \
     && rm -rf /var/lib/apt/lists/*
 
 RUN groupadd -r croppilot && useradd -r -g croppilot -d /app -s /sbin/nologin croppilot
+
+# Writable model-artifact cache for the non-root runtime user. Backed by the
+# disease_models named volume in docker-compose (download once, reuse).
+RUN mkdir -p /models/disease && chown -R croppilot:croppilot /models
 
 WORKDIR /app
 COPY --from=builder /root/.local /usr/local

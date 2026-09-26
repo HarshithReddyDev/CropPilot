@@ -16,10 +16,10 @@ import { YieldCard } from "@/components/dashboard/yield-card";
 import { MarketTrends } from "@/components/dashboard/market-trends";
 import { SchemeRecommendations } from "@/components/dashboard/scheme-recommendations";
 import { QuickActions } from "@/components/dashboard/quick-actions";
-import { DemoBanner } from "@/app/dashboard/demo-banner";
 import { useAuthStore } from "@/stores/auth-store";
 import { MOCK_DASHBOARD_DATA } from "@/lib/constants";
 import { cn } from "@/lib/utils";
+import { useTranslation } from "@/lib/i18n";
 import {
   Select,
   SelectContent,
@@ -63,9 +63,16 @@ const today = new Date().toLocaleDateString("en-IN", {
 });
 
 export default function DashboardPage() {
+  const { t, locale } = useTranslation();
   const user = useAuthStore((s) => s.user);
   const [selectedFarm, setSelectedFarm] = useState("all");
   const data = useMemo(() => MOCK_DASHBOARD_DATA, []);
+  const todayLabel = new Date().toLocaleDateString(locale === "en" ? "en-IN" : `${locale}-IN`, {
+    weekday: "long",
+    day: "numeric",
+    month: "long",
+    year: "numeric",
+  });
 
   return (
     <DashboardLayout>
@@ -75,29 +82,27 @@ export default function DashboardPage() {
         initial="hidden"
         animate="visible"
       >
-        <DemoBanner />
-
         <motion.div variants={itemVariants} className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
           <div>
             <div className="flex items-center gap-2">
               <User className="h-5 w-5 text-primary" />
               <h1 className="text-xl font-bold">
-                Welcome back, {user?.full_name?.split(" ")[0] || "Farmer"}
+                {t("dashboard.welcomeBack", { name: user?.full_name?.split(" ")[0] || t("dashboard.farmer") })}
               </h1>
             </div>
             <div className="flex items-center gap-2 mt-1 text-sm text-muted-foreground">
               <CalendarDays className="h-4 w-4" />
-              {today}
+              {todayLabel}
             </div>
           </div>
           <Select value={selectedFarm} onValueChange={setSelectedFarm}>
             <SelectTrigger className="w-full sm:w-[200px]">
-              <SelectValue placeholder="Select farm" />
+              <SelectValue placeholder={t("dashboard.selectFarm")} />
             </SelectTrigger>
             <SelectContent>
               {farms.map((farm) => (
                 <SelectItem key={farm.value} value={farm.value}>
-                  {farm.label}
+                  {farm.value === "all" ? t("dashboard.allFarms") : farm.label}
                 </SelectItem>
               ))}
             </SelectContent>

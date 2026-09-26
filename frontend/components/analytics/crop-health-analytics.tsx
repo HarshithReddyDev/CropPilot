@@ -21,6 +21,7 @@ import {
 import { AlertTriangle, Activity, Heart } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { cn } from "@/lib/utils";
+import { useTranslation } from "@/lib/i18n";
 
 const healthMetrics = [
   { metric: "Leaf Color", value: 85, fullMark: 100 },
@@ -84,6 +85,7 @@ const getHealthColor = (score: number) => {
 };
 
 export function CropHealthAnalytics() {
+  const { t } = useTranslation();
   const overallScore = Math.round(
     healthMetrics.reduce((sum, m) => sum + m.value, 0) / healthMetrics.length
   );
@@ -93,7 +95,7 @@ export function CropHealthAnalytics() {
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         <Card className="lg:col-span-1">
           <CardHeader>
-            <CardTitle className="text-base">Overall Health</CardTitle>
+            <CardTitle className="text-base">{t("analytics.chHealthOverall")}</CardTitle>
           </CardHeader>
           <CardContent className="flex flex-col items-center">
             <div className="relative w-40 h-40">
@@ -135,7 +137,7 @@ export function CropHealthAnalytics() {
 
         <Card className="lg:col-span-2">
           <CardHeader>
-            <CardTitle className="text-base">Health Metrics Radar</CardTitle>
+            <CardTitle className="text-base">{t("analytics.chHealthRadar")}</CardTitle>
           </CardHeader>
           <CardContent>
             <div className="h-72">
@@ -161,7 +163,7 @@ export function CropHealthAnalytics() {
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         <Card>
           <CardHeader>
-            <CardTitle className="text-base">Health Score Trend</CardTitle>
+            <CardTitle className="text-base">{t("analytics.chHealthTrend")}</CardTitle>
           </CardHeader>
           <CardContent>
             <div className="h-64">
@@ -187,7 +189,7 @@ export function CropHealthAnalytics() {
 
         <Card>
           <CardHeader>
-            <CardTitle className="text-base">Health by Plot</CardTitle>
+            <CardTitle className="text-base">{t("analytics.chHealthByPlot")}</CardTitle>
           </CardHeader>
           <CardContent>
             <div className="h-64">
@@ -211,7 +213,7 @@ export function CropHealthAnalytics() {
 
       <Card>
         <CardHeader>
-          <CardTitle className="text-base">Health Alerts Timeline</CardTitle>
+          <CardTitle className="text-base">{t("analytics.chHealthTimeline")}</CardTitle>
         </CardHeader>
         <CardContent>
           <div className="space-y-0">

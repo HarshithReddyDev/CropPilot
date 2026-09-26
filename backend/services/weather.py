@@ -68,3 +68,6 @@ class WeatherService:
             recorded_at=datetime.utcnow().replace(tzinfo=timezone.utc),
         )
         return WeatherRecordResponse.model_validate(record)
+
+
+weather_service = WeatherService()

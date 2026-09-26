@@ -5,6 +5,7 @@ import { Sprout, TrendingUp, TrendingDown } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Progress } from "@/components/ui/progress";
 import type { DashboardData } from "@/lib/constants";
+import { useTranslation } from "@/lib/i18n";
 
 interface CropHealthProps {
   data: DashboardData["cropHealth"];
@@ -12,6 +13,7 @@ interface CropHealthProps {
 }
 
 export function CropHealth({ data, className }: CropHealthProps) {
+  const { t } = useTranslation();
   const circumference = 2 * Math.PI * 44;
   const offset = circumference - (data.overallScore / 100) * circumference;
 
@@ -26,7 +28,7 @@ export function CropHealth({ data, className }: CropHealthProps) {
     <div className={cn("glass-card p-5", className)}>
       <div className="flex items-center gap-2 mb-4">
         <Sprout className="h-5 w-5 text-primary" />
-        <h3 className="font-semibold text-sm">Crop Health</h3>
+        <h3 className="font-semibold text-sm">{t("dashboard.wCropHealth")}</h3>
       </div>
 
       <div className="flex items-center gap-5 mb-4">

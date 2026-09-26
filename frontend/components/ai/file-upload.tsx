@@ -4,6 +4,7 @@ import { useState, useRef, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Paperclip, X, FileText, Image, Camera, Upload, AlertCircle } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { useTranslation } from "@/lib/i18n";
 
 const MAX_FILE_SIZE = 10 * 1024 * 1024;
 const ACCEPTED_TYPES = [
@@ -31,6 +32,7 @@ interface FileUploadProps {
 }
 
 export function FileUpload({ onFilesSelected, disabled }: FileUploadProps) {
+  const { t } = useTranslation();
   const [isOpen, setIsOpen] = useState(false);
   const [files, setFiles] = useState<FilePreview[]>([]);
   const [isUploading, setIsUploading] = useState(false);
@@ -42,7 +44,7 @@ export function FileUpload({ onFilesSelected, disabled }: FileUploadProps) {
       return `File "${file.name}" exceeds 10MB limit`;
     }
     if (!ACCEPTED_TYPES.includes(file.type) && !file.type.startsWith("image/")) {
-      return `File type "${file.type || "unknown"}" is not supported`;
+      return t("assistant.fileTypeUnsupported", { type: file.type || "unknown" });
     }
     return null;
   };
@@ -143,7 +145,7 @@ export function FileUpload({ onFilesSelected, disabled }: FileUploadProps) {
             "text-muted-foreground hover:text-foreground hover:bg-accent",
             (disabled || isUploading) && "opacity-50 cursor-not-allowed"
           )}
-          title="Attach files"
+          title={t("assistant.attachFiles")}
         >
           <Paperclip className="h-4 w-4" />
         </button>
@@ -165,7 +167,7 @@ export function FileUpload({ onFilesSelected, disabled }: FileUploadProps) {
                   <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary/10 text-primary">
                     <Image className="h-4 w-4" />
                   </div>
-                  <span className="font-medium">Images & Documents</span>
+                  <span className="font-medium">{t("assistant.attachDocs")}</span>
                 </button>
                 <button
                   onClick={() => cameraInputRef.current?.click()}
@@ -174,7 +176,7 @@ export function FileUpload({ onFilesSelected, disabled }: FileUploadProps) {
                   <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-secondary text-secondary-foreground">
                     <Camera className="h-4 w-4" />
                   </div>
-                  <span className="font-medium">Take a Photo</span>
+                  <span className="font-medium">{t("assistant.takePhoto")}</span>
                 </button>
               </div>
             </motion.div>

@@ -21,6 +21,7 @@ import {
 } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { cn } from "@/lib/utils";
+import { displayCrop, formatNumber, shortMonths, useTranslation } from "@/lib/i18n";
 
 const priceTrends = [
   { month: "Jan", Rice: 2850, Wheat: 2250, Cotton: 5400, Sugarcane: 350, Maize: 1850 },
@@ -78,14 +79,16 @@ const bestSellingTimes = [
   { commodity: "Maize", bestTime: "August - September", reason: "Off-season supply gap" },
 ];
 
-const CustomTooltip = ({ active, payload, label }: any) => {
+import type { AppLocale } from "@/stores/locale-store";
+
+const CustomTooltip = ({ active, payload, label, locale }: any & { locale: AppLocale }) => {
   if (!active || !payload) return null;
   return (
     <div className="rounded-xl border border-border bg-card p-3 shadow-lg text-sm">
       <p className="font-medium text-foreground mb-1">{label}</p>
       {payload.map((entry: any, i: number) => (
         <p key={i} style={{ color: entry.color }} className="text-muted-foreground">
-          {entry.name}: ₹{entry.value.toLocaleString("en-IN")}/qtl
+          {displayCrop(String(entry.name), locale)}: ₹{formatNumber(locale, entry.value)}/qtl
         </p>
       ))}
     </div>
@@ -93,22 +96,30 @@ const CustomTooltip = ({ active, payload, label }: any) => {
 };
 
 export function MarketAnalytics() {
+  const { t, locale } = useTranslation();
+  const monthsLocal = shortMonths(locale);
+  const monthIdx: Record<string, number> = {
+    Jan: 0, Feb: 1, Mar: 2, Apr: 3, May: 4, Jun: 5,
+    Jul: 6, Aug: 7, Sep: 8, Oct: 9, Nov: 10, Dec: 11,
+  };
+  const mName = (en: string) => monthsLocal[monthIdx[en] ?? 0] ?? en;
+  const L = (en: string) => displayCrop(en, locale);
   return (
     <div className="space-y-6">
       <div className="grid grid-cols-4 gap-4">
         {[
-          { label: "Price Volatility Index", value: "8.2%", trend: "Low", icon: Activity, color: "text-emerald-500" },
-          { label: "Top Gainers", value: "Cotton", sub: "+4.2%", icon: TrendingUp, color: "text-emerald-500" },
-          { label: "Top Losers", value: "Maize", sub: "-1.5%", icon: TrendingDown, color: "text-red-500" },
-          { label: "Total Volume", value: "1.85L tonnes", icon: BarChart3, color: "text-blue-500" },
-        ].map(({ label, value, sub, trend, icon: Icon, color }) => (
+          { label: t("analytics.statVolatility"), value: "8.2%", trend: t("analytics.trendLow"), low: true, icon: Activity, color: "text-emerald-500" },
+          { label: t("analytics.statGainers"), value: L("Cotton"), sub: "+4.2%", icon: TrendingUp, color: "text-emerald-500" },
+          { label: t("analytics.statLosers"), value: L("Maize"), sub: "-1.5%", icon: TrendingDown, color: "text-red-500" },
+          { label: t("analytics.statVolume"), value: "1.85L tonnes", icon: BarChart3, color: "text-blue-500" },
+        ].map(({ label, value, sub, trend, low, icon: Icon, color }) => (
           <Card key={label}>
             <CardContent className="p-4">
               <div className="flex items-start justify-between">
                 <div>
                   <p className="text-xs text-muted-foreground">{label}</p>
                   <p className="text-lg font-bold mt-1">{value}</p>
-                  {sub && <p className={cn("text-xs font-medium", trend === "Low" ? "text-emerald-500" : color)}>{sub}</p>}
+                  {sub && <p className={cn("text-xs font-medium", low ? "text-emerald-500" : color)}>{sub}</p>}
                 </div>
                 <div className={cn("flex h-9 w-9 items-center justify-center rounded-lg bg-card border border-border", color)}>
                   <Icon className="h-4 w-4" />
@@ -121,17 +132,17 @@ export function MarketAnalytics() {
 
       <Card>
         <CardHeader>
-          <CardTitle className="text-base">Price Trends - Top 5 Commodities</CardTitle>
+          <CardTitle className="text-base">{t("analytics.chPriceTrends")}</CardTitle>
         </CardHeader>
         <CardContent>
           <div className="h-72">
             <ResponsiveContainer width="100%" height="100%">
               <ComposedChart data={priceTrends}>
                 <CartesianGrid strokeDasharray="3 3" className="stroke-border" />
-                <XAxis dataKey="month" className="text-xs text-muted-foreground" tickLine={false} />
+                <XAxis dataKey="month" tickFormatter={mName} className="text-xs text-muted-foreground" tickLine={false} />
                 <YAxis className="text-xs text-muted-foreground" tickLine={false} tickFormatter={(v) => `₹${v}`} />
-                <Tooltip content={<CustomTooltip />} />
-                <Legend />
+                <Tooltip content={<CustomTooltip locale={locale} />} />
+                <Legend formatter={(v) => L(String(v))} />
                 <Line type="monotone" dataKey="Rice" stroke="#22c55e" strokeWidth={2} dot={false} />
                 <Line type="monotone" dataKey="Wheat" stroke="#3b82f6" strokeWidth={2} dot={false} />
                 <Line type="monotone" dataKey="Cotton" stroke="#f59e0b" strokeWidth={2} dot={false} />
@@ -146,16 +157,16 @@ export function MarketAnalytics() {
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         <Card>
           <CardHeader>
-            <CardTitle className="text-base">Price Heatmap - Commodity vs Month</CardTitle>
+            <CardTitle className="text-base">{t("analytics.chPriceHeatmap")}</CardTitle>
           </CardHeader>
           <CardContent>
             <div className="overflow-x-auto">
               <table className="w-full text-xs">
                 <thead>
                   <tr>
-                    <th className="text-left py-2 pr-4 text-muted-foreground font-medium">Commodity</th>
-                    {months.map((m) => (
-                      <th key={m} className="py-2 px-1 text-muted-foreground font-medium text-center">{m}</th>
+                    <th className="text-left py-2 pr-4 text-muted-foreground font-medium">{t("analytics.thCommodity")}</th>
+                    {months.map((m, i) => (
+                      <th key={m} className="py-2 px-1 text-muted-foreground font-medium text-center">{monthsLocal[i]}</th>
                     ))}
                   </tr>
                 </thead>
@@ -195,16 +206,16 @@ export function MarketAnalytics() {
 
         <Card>
           <CardHeader>
-            <CardTitle className="text-base">Volume Traded</CardTitle>
+            <CardTitle className="text-base">{t("analytics.chVolume")}</CardTitle>
           </CardHeader>
           <CardContent>
             <div className="h-64">
               <ResponsiveContainer width="100%" height="100%">
                 <ComposedChart data={volumeTraded}>
                   <CartesianGrid strokeDasharray="3 3" className="stroke-border" />
-                  <XAxis dataKey="month" className="text-xs text-muted-foreground" tickLine={false} />
+                  <XAxis dataKey="month" tickFormatter={mName} className="text-xs text-muted-foreground" tickLine={false} />
                   <YAxis className="text-xs text-muted-foreground" tickLine={false} tickFormatter={(v) => `${(v / 1000).toFixed(0)}K`} />
-                  <Tooltip content={<CustomTooltip />} />
+                  <Tooltip content={<CustomTooltip locale={locale} />} />
                   <Bar dataKey="volume" fill="#22c55e" radius={[4, 4, 0, 0]} />
                   <Line type="monotone" dataKey="volume" stroke="#3b82f6" strokeWidth={2} dot={false} />
                 </ComposedChart>
@@ -217,7 +228,7 @@ export function MarketAnalytics() {
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         <Card>
           <CardHeader>
-            <CardTitle className="text-base">Best Selling Times</CardTitle>
+            <CardTitle className="text-base">{t("analytics.chBestTimes")}</CardTitle>
           </CardHeader>
           <CardContent>
             <div className="space-y-3">
@@ -237,7 +248,7 @@ export function MarketAnalytics() {
 
         <Card>
           <CardHeader>
-            <CardTitle className="text-base">Export / Import Analysis</CardTitle>
+            <CardTitle className="text-base">{t("analytics.chTrade")}</CardTitle>
           </CardHeader>
           <CardContent>
             <div className="space-y-3">
@@ -254,11 +265,11 @@ export function MarketAnalytics() {
                       "w-2 h-2 rounded-full",
                       item.status === "export" ? "bg-emerald-500" : item.status === "import" ? "bg-red-500" : "bg-amber-500"
                     )} />
-                    <span className="font-medium text-sm">{item.commodity}</span>
+                    <span className="font-medium text-sm">{L(item.commodity)}</span>
                   </div>
                   <div className="flex items-center gap-4 text-xs font-mono">
-                    <span className="text-emerald-500">Exp: {item.export}</span>
-                    <span className="text-red-500">Imp: {item.import}</span>
+                    <span className="text-emerald-500">{t("analytics.expShort")}: {item.export}</span>
+                    <span className="text-red-500">{t("analytics.impShort")}: {item.import}</span>
                   </div>
                 </div>
               ))}

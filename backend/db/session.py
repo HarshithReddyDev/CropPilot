@@ -1,7 +1,11 @@
 from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker, create_async_engine
 from sqlalchemy.pool import NullPool
 
+import structlog
+
 from core.config import settings
+
+logger = structlog.get_logger(__name__)
 
 _pool_kwargs = {}
 if settings.DEBUG:
@@ -31,5 +35,24 @@ async def get_session() -> AsyncSession:
 
 async def init_db():
     from db.base import Base
-    async with engine.begin() as conn:
-        await conn.run_sync(Base.metadata.create_all)
+    try:
+        async with engine.begin() as conn:
+            await conn.run_sync(Base.metadata.create_all)
+        return
+    except Exception as exc:
+        # Partial initialization is a development-only fallback for local
+        # databases without PostGIS (plain PostgreSQL), where geo-dependent
+        # tables cannot be created. Production must fail loudly instead of
+        # booting with a silently partial schema.
+        logger.warning("init_db_full_failed", error=str(exc)[:300])
+        if settings.ENVIRONMENT.strip().lower() == "production":
+            raise
+    for table in Base.metadata.sorted_tables:
+        try:
+            async with engine.begin() as conn:
+                async with conn.begin_nested():
+                    await conn.run_sync(table.create, checkfirst=True)
+        except Exception as exc:
+            logger.warning(
+                "init_db_table_skipped", table=table.name, error=str(exc)[:300]
+            )

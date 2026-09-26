@@ -18,6 +18,7 @@ import {
 import { Droplets, Zap, Lightbulb } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { cn } from "@/lib/utils";
+import { useTranslation } from "@/lib/i18n";
 
 const dailyWaterUsage = [
   { day: "Mon", usage: 120, rainfall: 15, optimal: 100 },
@@ -68,6 +69,7 @@ const CustomTooltip = ({ active, payload, label }: any) => {
 };
 
 export function WaterUsageAnalytics() {
+  const { t } = useTranslation();
   return (
     <div className="space-y-6">
       <div className="grid grid-cols-3 gap-4">
@@ -95,7 +97,7 @@ export function WaterUsageAnalytics() {
 
       <Card>
         <CardHeader>
-          <CardTitle className="text-base">Daily Water Usage with Rainfall</CardTitle>
+          <CardTitle className="text-base">{t("analytics.chWaterDaily")}</CardTitle>
         </CardHeader>
         <CardContent>
           <div className="h-72">
@@ -139,7 +141,7 @@ export function WaterUsageAnalytics() {
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         <Card>
           <CardHeader>
-            <CardTitle className="text-base">Water Usage by Crop</CardTitle>
+            <CardTitle className="text-base">{t("analytics.chWaterByCrop")}</CardTitle>
           </CardHeader>
           <CardContent>
             <div className="h-64">
@@ -162,7 +164,7 @@ export function WaterUsageAnalytics() {
 
         <Card>
           <CardHeader>
-            <CardTitle className="text-base">Water Efficiency (L per kg yield)</CardTitle>
+            <CardTitle className="text-base">{t("analytics.chWaterEff")}</CardTitle>
           </CardHeader>
           <CardContent>
             <div className="h-64">
@@ -184,7 +186,7 @@ export function WaterUsageAnalytics() {
 
       <Card>
         <CardHeader>
-          <CardTitle className="text-base">Water Savings Suggestions</CardTitle>
+          <CardTitle className="text-base">{t("analytics.chWaterSave")}</CardTitle>
         </CardHeader>
         <CardContent>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">

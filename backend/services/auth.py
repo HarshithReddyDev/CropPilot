@@ -126,3 +126,6 @@ class AuthService:
 
     async def logout(self, db: AsyncSession, user_id: str):
         await user_repository.update_refresh_token(db, user_id, None)
+
+
+auth_service = AuthService()

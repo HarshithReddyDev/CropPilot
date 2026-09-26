@@ -13,6 +13,7 @@ import {
   PanelLeft,
 } from "lucide-react";
 import { cn, formatDate, truncate } from "@/lib/utils";
+import { useTranslation } from "@/lib/i18n";
 
 interface Conversation {
   id: string;
@@ -42,6 +43,7 @@ export function ConversationSidebar({
   onToggleCollapse,
 }: ConversationSidebarProps) {
   const [search, setSearch] = useState("");
+  const { t } = useTranslation();
 
   const filtered = search.trim()
     ? conversations.filter(
@@ -56,18 +58,19 @@ export function ConversationSidebar({
       animate={{ width: isCollapsed ? 0 : 280 }}
       transition={{ duration: 0.3, ease: "easeInOut" }}
       className={cn(
-        "relative flex flex-col border-r border-border bg-card overflow-hidden",
+        "relative flex flex-col border-e border-border bg-card overflow-hidden",
         isCollapsed ? "min-w-0" : "min-w-[280px]"
       )}
     >
       <div className={cn("flex flex-col h-full", isCollapsed && "invisible")}>
         <div className="flex items-center justify-between p-3 border-b border-border">
-          <h2 className="text-sm font-semibold text-foreground">Conversations</h2>
+          <h2 className="text-sm font-semibold text-foreground">{t("assistant.title")}</h2>
           <div className="flex items-center gap-1">
             <button
               onClick={onToggleCollapse}
               className="flex h-7 w-7 items-center justify-center rounded-lg text-muted-foreground hover:text-foreground hover:bg-accent transition-colors"
-              title="Close sidebar"
+              title={t("assistant.sideClose")}
+              aria-label={t("assistant.sideClose")}
             >
               <PanelLeftClose className="h-4 w-4" />
             </button>
@@ -80,18 +83,19 @@ export function ConversationSidebar({
             className="flex w-full items-center gap-2 rounded-xl bg-primary px-4 py-2.5 text-sm font-medium text-primary-foreground shadow-sm transition-all hover:bg-primary/90 active:scale-[0.98]"
           >
             <Plus className="h-4 w-4" />
-            New Chat
+            {t("assistant.sideNewChat")}
           </button>
         </div>
 
         <div className="px-3 pb-2">
           <div className="relative">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-muted-foreground" />
+            <Search className="absolute start-3 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-muted-foreground" />
             <input
               value={search}
               onChange={(e) => setSearch(e.target.value)}
-              placeholder="Search conversations..."
-              className="w-full rounded-lg border border-border bg-background py-2 pl-9 pr-3 text-xs text-foreground placeholder:text-muted-foreground/60 outline-none focus:border-primary/50 transition-colors"
+              placeholder={t("assistant.sideSearch")}
+              aria-label={t("assistant.sideSearch")}
+              className="w-full rounded-lg border border-border bg-background py-2 ps-9 pe-3 text-xs text-foreground placeholder:text-muted-foreground/60 outline-none focus:border-primary/50 transition-colors"
             />
           </div>
         </div>
@@ -106,7 +110,7 @@ export function ConversationSidebar({
               >
                 <MessageSquare className="h-8 w-8 text-muted-foreground/40" />
                 <p className="text-xs text-muted-foreground">
-                  {search ? "No conversations found" : "No conversations yet"}
+                  {search ? t("assistant.sideNoFound") : t("assistant.sideNoYet")}
                 </p>
               </motion.div>
             ) : (
@@ -123,7 +127,7 @@ export function ConversationSidebar({
                   <button
                     onClick={() => onSelect(conv.id)}
                     className={cn(
-                      "w-full rounded-xl px-3 py-2.5 text-left transition-all",
+                      "w-full rounded-xl px-3 py-2.5 text-start transition-all",
                       activeId === conv.id
                         ? "bg-primary/10 border border-primary/20"
                         : "hover:bg-accent border border-transparent"
@@ -155,8 +159,9 @@ export function ConversationSidebar({
                       e.stopPropagation();
                       onDelete(conv.id);
                     }}
-                    className="absolute right-2 top-2 flex h-6 w-6 items-center justify-center rounded-lg opacity-0 group-hover:opacity-100 hover:bg-destructive/10 text-muted-foreground hover:text-destructive transition-all"
-                    title="Delete conversation"
+                    className="absolute end-2 top-2 flex h-6 w-6 items-center justify-center rounded-lg opacity-0 group-hover:opacity-100 hover:bg-destructive/10 text-muted-foreground hover:text-destructive transition-all"
+                    title={t("assistant.sideDelete")}
+                    aria-label={t("assistant.sideDelete")}
                   >
                     <Trash2 className="h-3.5 w-3.5" />
                   </button>
@@ -170,8 +175,9 @@ export function ConversationSidebar({
       {isCollapsed && (
         <button
           onClick={onToggleCollapse}
-          className="absolute inset-y-0 right-0 z-10 flex items-center justify-center w-8 bg-card/50 backdrop-blur-sm border-l border-border opacity-0 hover:opacity-100 transition-opacity"
-          title="Open sidebar"
+          className="absolute inset-y-0 end-0 z-10 flex items-center justify-center w-8 bg-card/50 backdrop-blur-sm border-s border-border opacity-0 hover:opacity-100 transition-opacity"
+          title={t("assistant.sideOpen")}
+          aria-label={t("assistant.sideOpen")}
         >
           <PanelLeft className="h-4 w-4 text-muted-foreground" />
         </button>

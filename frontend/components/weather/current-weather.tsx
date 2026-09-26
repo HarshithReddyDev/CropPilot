@@ -15,6 +15,7 @@ import {
   Droplets,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { useTranslation } from "@/lib/i18n";
 
 interface CurrentWeatherProps {
   location: string;
@@ -91,6 +92,7 @@ export function CurrentWeather({
   humidity,
   condition,
 }: CurrentWeatherProps) {
+  const { t } = useTranslation();
   const config = conditionConfig[condition];
   const Icon = config.icon;
 
@@ -153,8 +155,8 @@ export function CurrentWeather({
                 {Math.round(temperature)}°
               </motion.p>
               <p className={cn("text-sm opacity-80", config.textColor)}>
-                <Thermometer className="mr-1 inline h-3.5 w-3.5" />
-                Feels like {Math.round(feelsLike)}°
+                <Thermometer className="me-1 inline h-3.5 w-3.5" />
+                {t("weather.feelsLike", { temp: Math.round(feelsLike) })}
               </p>
             </div>
           </motion.div>
@@ -164,13 +166,13 @@ export function CurrentWeather({
           <div className="flex items-center gap-2">
             <ArrowUp className={cn("h-4 w-4", config.textColor)} />
             <span className={cn("text-sm", config.textColor)}>
-              H: {Math.round(high)}°
+              {t("weather.highShort", { temp: Math.round(high) })}
             </span>
           </div>
           <div className="flex items-center gap-2">
             <ArrowDown className={cn("h-4 w-4", config.textColor)} />
             <span className={cn("text-sm", config.textColor)}>
-              L: {Math.round(low)}°
+              {t("weather.lowShort", { temp: Math.round(low) })}
             </span>
           </div>
           <div className="flex items-center gap-2">

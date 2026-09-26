@@ -4,6 +4,7 @@ import { motion } from "framer-motion";
 import { MapPin, Navigation, CloudRain, Thermometer, ExternalLink } from "lucide-react";
 import Link from "next/link";
 import { cn } from "@/lib/utils";
+import { useTranslation } from "@/lib/i18n";
 
 interface TemperatureMarker {
   lat: number;
@@ -23,6 +24,7 @@ export function WeatherMap({
   temperatures,
   locationName,
 }: WeatherMapProps) {
+  const { t } = useTranslation();
   const defaultTemps: TemperatureMarker[] = temperatures ?? [
     { lat: 0.15, lng: 0.2, temp: 34, label: "Field A" },
     { lat: 0.65, lng: 0.25, temp: 32, label: "Field B" },
@@ -39,13 +41,13 @@ export function WeatherMap({
       <div className="flex items-center justify-between border-b border-border/50 px-5 py-4">
         <div className="flex items-center gap-2">
           <MapPin className="h-5 w-5 text-primary" />
-          <h3 className="text-sm font-semibold text-foreground">Weather Map</h3>
+          <h3 className="text-sm font-semibold text-foreground">{t("maps.weatherMapTitle")}</h3>
         </div>
         <Link
           href="/maps"
           className="inline-flex items-center gap-1.5 text-xs font-medium text-primary transition-colors hover:text-primary/80"
         >
-          View Full Map
+          {t("maps.viewFullMap")}
           <ExternalLink className="h-3.5 w-3.5" />
         </Link>
       </div>
@@ -70,7 +72,7 @@ export function WeatherMap({
                   <div className="relative">
                     <MapPin className="h-8 w-8 text-primary" />
                     <span className="absolute -bottom-1 left-1/2 -translate-x-1/2 whitespace-nowrap rounded-full bg-primary px-2 py-0.5 text-[10px] font-medium text-primary-foreground">
-                      {locationName ?? "Your Location"}
+                      {locationName ?? t("maps.yourLocation")}
                     </span>
                   </div>
                 </div>
@@ -92,7 +94,7 @@ export function WeatherMap({
 
               <div className="absolute bottom-3 right-3 flex items-center gap-2 rounded-lg bg-background/80 px-3 py-1.5 backdrop-blur-sm">
                 <CloudRain className="h-3.5 w-3.5 text-blue-500" />
-                <span className="text-[10px] font-medium text-foreground">Rain Radar</span>
+                <span className="text-[10px] font-medium text-foreground">{t("maps.rainRadar")}</span>
                 <span className="relative flex h-2 w-2">
                   <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-blue-400 opacity-75" />
                   <span className="relative inline-flex h-2 w-2 rounded-full bg-blue-500" />

@@ -7,7 +7,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from core.dependencies import get_current_user, get_db
 from models.user import User
 from schemas.disease import DiseaseLogResponse
-from services.disease import disease_service
+from services.disease_logs import disease_service
 
 router = APIRouter(prefix="/diseases", tags=["Diseases"])
 

@@ -4,16 +4,18 @@ import { useTheme } from "next-themes";
 import { useEffect, useState } from "react";
 import { Sun, Moon, Monitor } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { useTranslation } from "@/lib/i18n";
 
 const modes = [
-  { value: "light", icon: Sun, label: "Light" },
-  { value: "dark", icon: Moon, label: "Dark" },
-  { value: "system", icon: Monitor, label: "System" },
+  { value: "light", icon: Sun, key: "assistant.themeLight" },
+  { value: "dark", icon: Moon, key: "assistant.themeDark" },
+  { value: "system", icon: Monitor, key: "assistant.themeSystem" },
 ] as const;
 
 type Mode = (typeof modes)[number]["value"];
 
 export function ThemeToggle() {
+  const { t } = useTranslation();
   const { theme, setTheme } = useTheme();
   const [mounted, setMounted] = useState(false);
 
@@ -23,7 +25,7 @@ export function ThemeToggle() {
     return (
       <button
         className="inline-flex h-9 w-9 items-center justify-center rounded-lg border border-border bg-background"
-        aria-label="Toggle theme"
+        aria-label={t("assistant.themeToggle")}
       >
         <Sun className="h-4 w-4" />
       </button>
@@ -41,8 +43,8 @@ export function ThemeToggle() {
     <button
       onClick={handleCycle}
       className="inline-flex h-9 w-9 items-center justify-center rounded-lg border border-border bg-background hover:bg-accent transition-colors"
-      aria-label={`Current theme: ${theme}. Click for ${nextMode.label}`}
-      title={modes.find((m) => m.value === theme)?.label}
+      aria-label={t("assistant.themeCurrent", { theme: theme ?? "system", next: t(nextMode.key) })}
+      title={t(modes.find((m) => m.value === theme)?.key ?? "assistant.themeSystem")}
     >
       {modes.map(({ value, icon: Icon }) => (
         <Icon

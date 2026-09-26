@@ -5,6 +5,7 @@ import { TrendingUp, ArrowUpRight, ArrowDownRight, MapPin } from "lucide-react";
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend } from "recharts";
 import { cn, formatCurrency } from "@/lib/utils";
 import type { DashboardData } from "@/lib/constants";
+import { useTranslation } from "@/lib/i18n";
 
 interface MarketTrendsProps {
   data: DashboardData["marketTrends"];
@@ -18,6 +19,7 @@ const commodityColors: Record<string, string> = {
 };
 
 export function MarketTrends({ data, className }: MarketTrendsProps) {
+  const { t } = useTranslation();
   const lineData = data.priceHistory.map((day) => {
     const row: Record<string, string | number> = { day: day.day };
     day.prices.forEach((p) => {
@@ -33,7 +35,7 @@ export function MarketTrends({ data, className }: MarketTrendsProps) {
       <div className="flex items-center justify-between mb-3">
         <div className="flex items-center gap-2">
           <TrendingUp className="h-5 w-5 text-primary" />
-          <h3 className="font-semibold text-sm">Market Trends</h3>
+          <h3 className="font-semibold text-sm">{t("dashboard.wMarketTrends")}</h3>
         </div>
         <div className="flex items-center gap-1 text-xs text-muted-foreground">
           <MapPin className="h-3 w-3" />

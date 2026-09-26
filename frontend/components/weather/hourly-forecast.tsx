@@ -14,6 +14,7 @@ import {
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
+import { useTranslation } from "@/lib/i18n";
 
 interface HourlyData {
   time: string;
@@ -40,6 +41,7 @@ const conditionIcon = (condition: string) => {
 };
 
 export function HourlyForecast({ data }: HourlyForecastProps) {
+  const { t } = useTranslation();
   const scrollRef = useRef<HTMLDivElement>(null);
 
   const scroll = (direction: "left" | "right") => {
@@ -61,7 +63,7 @@ export function HourlyForecast({ data }: HourlyForecastProps) {
       <div className="flex items-center justify-between border-b border-border/50 px-5 py-4">
         <div className="flex items-center gap-2">
           <CloudSun className="h-5 w-5 text-primary" />
-          <h3 className="text-sm font-semibold text-foreground">Hourly Forecast</h3>
+          <h3 className="text-sm font-semibold text-foreground">{t("weather.hourly")}</h3>
         </div>
         <div className="flex gap-1">
           <Button

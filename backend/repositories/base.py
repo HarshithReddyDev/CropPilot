@@ -46,10 +46,10 @@ class BaseRepository:
         return result.rowcount > 0
 
     async def count(self, db: AsyncSession, **filters) -> int:
-        from sqlalchemy.functions import func
+        from sqlalchemy import func
         stmt = select(func.count()).select_from(self.model)
         for key, value in filters.items():
             if hasattr(self.model, key) and value is not None:
                 stmt = stmt.where(getattr(self.model, key) == value)
         result = await db.execute(stmt)
-        return result.scalar()
+        return result.scalar() or 0

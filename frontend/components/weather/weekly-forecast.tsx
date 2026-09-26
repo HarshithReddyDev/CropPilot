@@ -13,6 +13,7 @@ import {
   Wind,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { useTranslation } from "@/lib/i18n";
 
 interface DayForecast {
   day: string;
@@ -41,6 +42,7 @@ const conditionIcon = (condition: string) => {
 };
 
 export function WeeklyForecast({ data }: WeeklyForecastProps) {
+  const { t } = useTranslation();
   return (
     <motion.div
       initial={{ opacity: 0, y: 20 }}
@@ -49,7 +51,7 @@ export function WeeklyForecast({ data }: WeeklyForecastProps) {
     >
       <div className="flex items-center gap-2 border-b border-border/50 px-5 py-4">
         <Sun className="h-5 w-5 text-primary" />
-        <h3 className="text-sm font-semibold text-foreground">7-Day Forecast</h3>
+        <h3 className="text-sm font-semibold text-foreground">{t("weather.weekly")}</h3>
       </div>
 
       <div className="divide-y divide-border/30">

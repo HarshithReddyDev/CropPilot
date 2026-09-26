@@ -11,6 +11,7 @@ import {
   Navigation,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { useTranslation } from "@/lib/i18n";
 
 interface WeatherDetailsProps {
   rainProbability: number;
@@ -105,6 +106,7 @@ export function WeatherDetails({
   pressure,
   visibility,
 }: WeatherDetailsProps) {
+  const { t } = useTranslation();
   return (
     <motion.div
       initial={{ opacity: 0, y: 20 }}
@@ -112,13 +114,13 @@ export function WeatherDetails({
       className="glass-card overflow-hidden"
     >
       <div className="border-b border-border/50 px-5 py-4">
-        <h3 className="text-sm font-semibold text-foreground">Weather Details</h3>
+        <h3 className="text-sm font-semibold text-foreground">{t("weather.details")}</h3>
       </div>
 
       <div className="grid grid-cols-2 gap-3 p-5">
         <DetailCard
           icon={Droplets}
-          label="Rain Probability"
+          label={t("weather.rainProbability")}
           value={`${rainProbability}%`}
           color="bg-blue-500/10 text-blue-500"
         >
@@ -148,7 +150,7 @@ export function WeatherDetails({
 
         <DetailCard
           icon={Wind}
-          label="Wind Speed"
+          label={t("weather.windSpeed")}
           value={`${windSpeed} km/h`}
           color="bg-cyan-500/10 text-cyan-500"
         >
@@ -157,7 +159,7 @@ export function WeatherDetails({
 
         <DetailCard
           icon={Droplets}
-          label="Humidity"
+          label={t("weather.humidity")}
           value={`${humidity}%`}
           color="bg-sky-500/10 text-sky-500"
         >
@@ -179,7 +181,7 @@ export function WeatherDetails({
 
         <DetailCard
           icon={Sun}
-          label="UV Index"
+          label={t("weather.uvIndex")}
           value={uvIndex <= 2 ? "Low" : uvIndex <= 5 ? "Moderate" : uvIndex <= 7 ? "High" : uvIndex <= 10 ? "Very High" : "Extreme"}
           color="bg-amber-500/10 text-amber-500"
         >
@@ -190,14 +192,14 @@ export function WeatherDetails({
 
         <DetailCard
           icon={Gauge}
-          label="Pressure"
+          label={t("weather.pressure")}
           value={`${pressure} hPa`}
           color="bg-purple-500/10 text-purple-500"
         />
 
         <DetailCard
           icon={Eye}
-          label="Visibility"
+          label={t("weather.visibility")}
           value={`${visibility} km`}
           color="bg-emerald-500/10 text-emerald-500"
         />

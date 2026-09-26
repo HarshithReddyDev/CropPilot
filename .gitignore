@@ -78,3 +78,10 @@ backend/.venv/
 frontend/node_modules/
 frontend/.next/
 backend/.venv/
+
+# Local test/build/model-cache artifacts (documentation screenshots remain tracked)
+/frontend/test-results/
+/frontend/playwright-report/
+/frontend/.next-prod-backup/
+/backend/.cache/
+/backend/.local/

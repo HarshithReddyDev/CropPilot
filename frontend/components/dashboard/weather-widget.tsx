@@ -4,6 +4,7 @@ import { motion } from "framer-motion";
 import { CloudSun, Droplets, Wind, MapPin, Sun, Cloud, CloudSunIcon } from "lucide-react";
 import { cn } from "@/lib/utils";
 import type { DashboardData } from "@/lib/constants";
+import { useTranslation } from "@/lib/i18n";
 
 interface WeatherWidgetProps {
   data: DashboardData["weather"];
@@ -17,11 +18,12 @@ const weatherIcons: Record<string, typeof Sun> = {
 };
 
 export function WeatherWidget({ data, className }: WeatherWidgetProps) {
+  const { t } = useTranslation();
   return (
     <div className={cn("glass-card p-5", className)}>
       <div className="flex items-center gap-2 mb-3">
         <CloudSun className="h-5 w-5 text-primary" />
-        <h3 className="font-semibold text-sm">Today&apos;s Weather</h3>
+        <h3 className="font-semibold text-sm">{t("dashboard.wWeather")}</h3>
       </div>
 
       <div className="flex items-start justify-between mb-4">

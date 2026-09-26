@@ -4,6 +4,7 @@ import { useRef, useState, useEffect, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Camera, CameraOff, Image, Loader2 } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { useTranslation } from "@/lib/i18n";
 import { Button } from "@/components/ui/button";
 import { useMediaDevices } from "@/hooks/use-media-devices";
 
@@ -13,6 +14,7 @@ interface CameraUploadProps {
 }
 
 export function CameraUpload({ onCapture, disabled }: CameraUploadProps) {
+  const { t } = useTranslation();
   const videoRef = useRef<HTMLVideoElement>(null);
   const [showCamera, setShowCamera] = useState(false);
   const [capturedPreview, setCapturedPreview] = useState<string | null>(null);
@@ -60,8 +62,8 @@ export function CameraUpload({ onCapture, disabled }: CameraUploadProps) {
           <Camera className="h-5 w-5" />
         </div>
         <div className="flex-1">
-          <h3 className="text-sm font-semibold text-foreground">Camera Capture</h3>
-          <p className="text-xs text-muted-foreground">Take a photo of the affected crop</p>
+          <h3 className="text-sm font-semibold text-foreground">{t("disease.cameraTitle")}</h3>
+          <p className="text-xs text-muted-foreground">{t("disease.cameraBody")}</p>
         </div>
         {isStreaming && (
           <motion.span
@@ -92,7 +94,7 @@ export function CameraUpload({ onCapture, disabled }: CameraUploadProps) {
                 <Camera className="h-7 w-7 text-muted-foreground" />
               </div>
               <p className="text-center text-sm text-muted-foreground">
-                Position the affected leaves or fruits in frame
+                {t("disease.cameraHint")}
               </p>
               <Button
                 onClick={handleToggleCamera}
@@ -100,7 +102,7 @@ export function CameraUpload({ onCapture, disabled }: CameraUploadProps) {
                 className="gap-2"
               >
                 <Camera className="h-4 w-4" />
-                Activate Camera
+                {t("disease.activateCamera")}
               </Button>
             </motion.div>
           ) : showCamera && !capturedPreview ? (
@@ -132,7 +134,7 @@ export function CameraUpload({ onCapture, disabled }: CameraUploadProps) {
                   className="flex-1 gap-2"
                 >
                   <CameraOff className="h-4 w-4" />
-                  Cancel
+                  {t("common.cancel")}
                 </Button>
                 <Button
                   onClick={handleCapture}
@@ -140,7 +142,7 @@ export function CameraUpload({ onCapture, disabled }: CameraUploadProps) {
                   className="flex-1 gap-2"
                 >
                   <Camera className="h-4 w-4" />
-                  Capture
+                  {t("disease.capture")}
                 </Button>
               </div>
             </motion.div>
@@ -155,7 +157,7 @@ export function CameraUpload({ onCapture, disabled }: CameraUploadProps) {
               <div className="relative overflow-hidden rounded-xl bg-black aspect-[4/3]">
                 <img
                   src={capturedPreview}
-                  alt="Captured"
+                  alt={t("disease.capture")}
                   className="h-full w-full object-cover"
                 />
                 <div className="absolute inset-0 ring-1 ring-inset ring-white/10" />
@@ -166,7 +168,7 @@ export function CameraUpload({ onCapture, disabled }: CameraUploadProps) {
                 className="w-full gap-2"
               >
                 <Camera className="h-4 w-4" />
-                Retake
+                {t("disease.retake")}
               </Button>
             </motion.div>
           ) : null}

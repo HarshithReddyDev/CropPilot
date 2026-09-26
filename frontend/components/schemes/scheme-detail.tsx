@@ -11,6 +11,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
+import { useTranslation } from "@/lib/i18n";
 import type { GovernmentScheme } from "@/types";
 
 const categoryColors: Record<string, string> = {
@@ -28,6 +29,7 @@ interface SchemeDetailProps {
 }
 
 export function SchemeDetail({ scheme, open, onOpenChange }: SchemeDetailProps) {
+  const { t } = useTranslation();
   if (!scheme) return null;
 
   return (
@@ -55,7 +57,7 @@ export function SchemeDetail({ scheme, open, onOpenChange }: SchemeDetailProps) 
           {scheme.ministry && (
             <div className="flex items-center gap-2 rounded-lg bg-muted/50 px-3 py-2 text-sm">
               <FileText className="h-4 w-4 text-muted-foreground" />
-              <span className="text-muted-foreground">Ministry:</span>
+              <span className="text-muted-foreground">{t("schemes.ministry")}</span>
               <span className="font-medium text-foreground">{scheme.ministry}</span>
               {scheme.department && (
                 <>
@@ -70,7 +72,7 @@ export function SchemeDetail({ scheme, open, onOpenChange }: SchemeDetailProps) 
             <div>
               <h4 className="mb-2 flex items-center gap-1.5 text-sm font-semibold text-foreground">
                 <CheckCircle2 className="h-4 w-4 text-primary" />
-                Eligibility Criteria
+                {t("schemes.eligibilityCriteria")}
               </h4>
               <ul className="space-y-1">
                 {scheme.eligibility_criteria.split("\n").map((line, i) => (
@@ -87,7 +89,7 @@ export function SchemeDetail({ scheme, open, onOpenChange }: SchemeDetailProps) 
             <div className="rounded-lg border border-emerald-500/20 bg-emerald-500/5 p-3">
               <h4 className="mb-2 flex items-center gap-1.5 text-sm font-semibold text-emerald-600 dark:text-emerald-400">
                 <Coins className="h-4 w-4" />
-                Benefits
+                {t("schemes.benefits")}
               </h4>
               <p className="text-sm text-muted-foreground whitespace-pre-line">{scheme.benefits}</p>
             </div>
@@ -97,7 +99,7 @@ export function SchemeDetail({ scheme, open, onOpenChange }: SchemeDetailProps) 
             <div>
               <h4 className="mb-2 flex items-center gap-1.5 text-sm font-semibold text-foreground">
                 <FileText className="h-4 w-4 text-primary" />
-                Required Documents
+                {t("schemes.requiredDocuments")}
               </h4>
               <div className="flex flex-wrap gap-2">
                 {scheme.documents_required.split(",").map((doc, i) => (
@@ -136,7 +138,7 @@ export function SchemeDetail({ scheme, open, onOpenChange }: SchemeDetailProps) 
             <div className="flex items-start gap-2 rounded-lg bg-muted/50 px-3 py-2">
               <Coins className="mt-0.5 h-4 w-4 text-muted-foreground" />
               <div>
-                <p className="text-xs font-medium text-muted-foreground">Funding Pattern</p>
+                <p className="text-xs font-medium text-muted-foreground">{t("schemes.funding")}</p>
                 <p className="text-sm text-foreground">{scheme.funding_pattern}</p>
               </div>
             </div>
@@ -147,9 +149,9 @@ export function SchemeDetail({ scheme, open, onOpenChange }: SchemeDetailProps) 
               <div className="flex items-center gap-2 text-sm text-muted-foreground">
                 <Calendar className="h-4 w-4" />
                 {scheme.is_active ? (
-                  <span className="text-emerald-500 font-medium">Active</span>
+                  <span className="text-emerald-500 font-medium">{t("schemes.active")}</span>
                 ) : (
-                  <span className="text-red-500 font-medium">Inactive</span>
+                  <span className="text-red-500 font-medium">{t("schemes.inactive")}</span>
                 )}
               </div>
               <a
@@ -158,7 +160,7 @@ export function SchemeDetail({ scheme, open, onOpenChange }: SchemeDetailProps) 
                 rel="noopener noreferrer"
               >
                 <Button variant="default" size="sm" className="gap-1.5">
-                  Apply Now
+                  {t("schemes.applyNow")}
                   <ExternalLink className="h-3.5 w-3.5" />
                 </Button>
               </a>

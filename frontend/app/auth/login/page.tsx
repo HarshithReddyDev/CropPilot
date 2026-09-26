@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
@@ -14,20 +14,29 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Checkbox } from "@/components/ui/checkbox";
 import { useAuth } from "@/hooks/use-auth";
-
-const loginSchema = z.object({
-  email: z.string().min(1, "Email is required").email("Invalid email address"),
-  password: z.string().min(1, "Password is required").min(6, "Password must be at least 6 characters"),
-  rememberMe: z.boolean().optional(),
-});
-
-type LoginForm = z.infer<typeof loginSchema>;
+import { useTranslation } from "@/lib/i18n";
 
 export default function LoginPage() {
+  const { t } = useTranslation();
   const router = useRouter();
-  const { login, enableDemoMode } = useAuth();
+  const { login } = useAuth();
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState<string | null>(null);
+
+  const loginSchema = useMemo(
+    () =>
+      z.object({
+        email: z.string().min(1, t("auth.emailRequired")).email(t("auth.emailInvalid")),
+        password: z
+          .string()
+          .min(1, t("auth.passwordRequired"))
+          .min(6, t("auth.passwordMin")),
+        rememberMe: z.boolean().optional(),
+      }),
+    [t]
+  );
+
+  type LoginForm = z.infer<typeof loginSchema>;
 
   const {
     register,
@@ -45,13 +54,12 @@ export default function LoginPage() {
       router.push("/dashboard");
     } catch (e: unknown) {
       const message =
-        e instanceof Error ? e.message : "Invalid credentials. Please try again.";
+        e instanceof Error ? e.message : t("auth.invalidCredentials");
       setError(message);
     }
   };
 
   const handleDemo = () => {
-    enableDemoMode();
     router.push("/dashboard");
   };
 
@@ -62,8 +70,8 @@ export default function LoginPage() {
         animate={{ opacity: 1, y: 0 }}
         transition={{ delay: 0.1 }}
       >
-        <h1 className="text-2xl font-bold text-foreground">Welcome back</h1>
-        <p className="mt-1 text-sm text-muted-foreground">Sign in to your CropPilot account</p>
+        <h1 className="text-2xl font-bold text-foreground">{t("auth.welcomeBack")}</h1>
+        <p className="mt-1 text-sm text-muted-foreground">{t("auth.signInSubtitle")}</p>
 
         {error && (
           <motion.div
@@ -77,7 +85,7 @@ export default function LoginPage() {
 
         <form onSubmit={handleSubmit(onSubmit)} className="mt-8 space-y-5">
           <div className="space-y-2">
-            <Label htmlFor="email">Email</Label>
+            <Label htmlFor="email">{t("auth.email")}</Label>
             <Input
               id="email"
               type="email"
@@ -91,19 +99,20 @@ export default function LoginPage() {
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="password">Password</Label>
+            <Label htmlFor="password">{t("auth.password")}</Label>
             <div className="relative">
               <Input
                 id="password"
                 type={showPassword ? "text" : "password"}
-                placeholder="Enter your password"
+                placeholder={t("auth.enterPassword")}
                 {...register("password")}
                 className={errors.password ? "border-destructive pr-10" : "pr-10"}
               />
               <button
                 type="button"
                 onClick={() => setShowPassword(!showPassword)}
-                className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
+                aria-label={showPassword ? t("auth.hidePassword") : t("auth.showPassword")}
+                className="absolute end-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
               >
                 {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
               </button>
@@ -113,58 +122,31 @@ export default function LoginPage() {
             )}
           </div>
 
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-2">
-              <Checkbox id="rememberMe" {...register("rememberMe")} />
-              <Label htmlFor="rememberMe" className="text-sm font-normal text-muted-foreground cursor-pointer">
-                Remember me
-              </Label>
+          <div className="flex items-center gap-2">
+              <div className="flex items-center gap-2">
+                <Checkbox id="rememberMe" {...register("rememberMe")} />
+                <Label htmlFor="rememberMe" className="text-sm font-normal text-muted-foreground cursor-pointer">
+                  {t("auth.rememberMe")}
+                </Label>
+              </div>
             </div>
-            <Link
-              href="/auth/forgot-password"
-              className="text-xs font-medium text-primary hover:text-primary/80 transition-colors"
-            >
-              Forgot password?
-            </Link>
-          </div>
 
           <Button type="submit" className="w-full gap-2" disabled={login.isPending}>
             {login.isPending ? (
               <>
                 <Loader2 className="h-4 w-4 animate-spin" />
-                Signing in...
+                {t("auth.signingIn")}
               </>
             ) : (
-              "Sign In"
+              t("auth.signInBtn")
             )}
           </Button>
         </form>
 
-        <div className="mt-4">
-          <div className="relative">
-            <div className="absolute inset-0 flex items-center">
-              <span className="w-full border-t border-border" />
-            </div>
-            <div className="relative flex justify-center text-xs uppercase">
-              <span className="bg-card px-2 text-muted-foreground">Or</span>
-            </div>
-          </div>
-
-          <Button
-            type="button"
-            variant="outline"
-            onClick={handleDemo}
-            className="mt-4 w-full gap-2"
-          >
-            <Loader2 className="h-4 w-4" />
-            Try Demo Mode
-          </Button>
-        </div>
-
         <p className="mt-6 text-center text-sm text-muted-foreground">
-          Don&apos;t have an account?{" "}
+          {t("auth.noAccount")}{" "}
           <Link href="/auth/register" className="font-medium text-primary hover:text-primary/80 transition-colors">
-            Register
+            {t("auth.registerLink")}
           </Link>
         </p>
       </motion.div>

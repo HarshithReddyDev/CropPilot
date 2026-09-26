@@ -56,6 +56,11 @@ app.add_middleware(PrometheusMiddleware)
 
 app.include_router(api_router)
 
+# Voice WebSocket lives at top level (/ws/voice), outside /api/v1.
+from api.v1.endpoints.voice import router as voice_router
+
+app.include_router(voice_router)
+
 # Mount the prometheus_client exporter on /metrics
 metrics_app = make_asgi_app()
 app.mount("/metrics", metrics_app)

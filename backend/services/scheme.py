@@ -16,3 +16,6 @@ class SchemeService:
     ) -> list[GovernmentSchemeResponse]:
         schemes = await scheme_repository.get_by_category(db, category)
         return [GovernmentSchemeResponse.model_validate(s) for s in schemes]
+
+
+scheme_service = SchemeService()

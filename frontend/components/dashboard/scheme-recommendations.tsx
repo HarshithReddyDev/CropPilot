@@ -6,6 +6,7 @@ import { cn } from "@/lib/utils";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import type { DashboardData } from "@/lib/constants";
+import { useTranslation } from "@/lib/i18n";
 
 interface SchemeRecommendationsProps {
   data: DashboardData["schemeRecommendations"];
@@ -13,11 +14,12 @@ interface SchemeRecommendationsProps {
 }
 
 export function SchemeRecommendations({ data, className }: SchemeRecommendationsProps) {
+  const { t } = useTranslation();
   return (
     <div className={cn("glass-card p-5", className)}>
       <div className="flex items-center gap-2 mb-4">
         <Landmark className="h-5 w-5 text-primary" />
-        <h3 className="font-semibold text-sm">Scheme Recommendations</h3>
+        <h3 className="font-semibold text-sm">{t("dashboard.wSchemes")}</h3>
       </div>
 
       <div className="space-y-3">
@@ -41,11 +43,11 @@ export function SchemeRecommendations({ data, className }: SchemeRecommendations
             <p className="text-xs text-muted-foreground ml-6 mb-2">{scheme.description}</p>
             <div className="ml-6 space-y-1">
               <div>
-                <span className="text-[10px] font-medium text-muted-foreground uppercase">Eligibility</span>
+                <span className="text-[10px] font-medium text-muted-foreground uppercase">{t("schemes.eligibility")}</span>
                 <p className="text-xs">{scheme.eligibility}</p>
               </div>
               <div>
-                <span className="text-[10px] font-medium text-muted-foreground uppercase">Benefits</span>
+                <span className="text-[10px] font-medium text-muted-foreground uppercase">{t("schemes.benefits")}</span>
                 <p className="text-xs text-primary font-medium">{scheme.benefits}</p>
               </div>
             </div>

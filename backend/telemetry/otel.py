@@ -2,7 +2,6 @@ from opentelemetry import trace, baggage
 from opentelemetry.exporter.otlp.proto.grpc.trace_exporter import OTLPSpanExporter
 from opentelemetry.instrumentation.fastapi import FastAPIInstrumentor
 from opentelemetry.instrumentation.httpx import HTTPXClientInstrumentor
-from opentelemetry.instrumentation.redis import RedisInstrumentor
 from opentelemetry.instrumentation.sqlalchemy import SQLAlchemyInstrumentor
 from opentelemetry.sdk.resources import Resource
 from opentelemetry.sdk.trace import TracerProvider, SpanProcessor
@@ -57,7 +56,6 @@ def setup_opentelemetry(app):
 
     FastAPIInstrumentor.instrument_app(app)
     SQLAlchemyInstrumentor().instrument(engine=engine.sync_engine)
-    RedisInstrumentor().instrument()
     HTTPXClientInstrumentor().instrument()
 
     return tracer_provider

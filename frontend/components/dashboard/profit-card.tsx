@@ -5,6 +5,7 @@ import { TrendingUp, TrendingDown, ArrowUpRight, ArrowDownRight } from "lucide-r
 import { AreaChart, Area, ResponsiveContainer } from "recharts";
 import { cn, formatCurrency, formatPercent } from "@/lib/utils";
 import type { DashboardData } from "@/lib/constants";
+import { useTranslation } from "@/lib/i18n";
 
 interface ProfitCardProps {
   data: DashboardData["profit"];
@@ -12,6 +13,7 @@ interface ProfitCardProps {
 }
 
 export function ProfitCard({ data, className }: ProfitCardProps) {
+  const { t } = useTranslation();
   const isUp = data.trendDirection === "up";
   const chartData = data.trend.map((v, i) => ({ index: i, value: v }));
 
@@ -19,7 +21,7 @@ export function ProfitCard({ data, className }: ProfitCardProps) {
     <div className={cn("glass-card p-5", className)}>
       <div className="flex items-center gap-2 mb-3">
         <TrendingUp className="h-5 w-5 text-primary" />
-        <h3 className="font-semibold text-sm">Net Profit</h3>
+        <h3 className="font-semibold text-sm">{t("dashboard.wNetProfit")}</h3>
       </div>
 
       <div className="flex items-baseline justify-between mb-1">
@@ -35,7 +37,7 @@ export function ProfitCard({ data, className }: ProfitCardProps) {
 
       <div className="flex gap-3 mb-3">
         <div className="flex items-center gap-1">
-          <span className="text-xs text-muted-foreground">Margin:</span>
+          <span className="text-xs text-muted-foreground">{t("dashboard.marginLabel")}</span>
           <span className="text-sm font-semibold">{data.margin.toFixed(1)}%</span>
         </div>
         {isUp ? (

@@ -2,7 +2,7 @@ from services.auth import AuthService
 from services.user import UserService
 from services.farm import FarmService
 from services.plot import PlotService
-from services.disease import DiseaseService
+from services.disease_logs import DiseaseService
 from services.weather import WeatherService
 from services.market import MarketService
 from services.scheme import SchemeService
